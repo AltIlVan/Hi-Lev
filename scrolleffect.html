@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Scroll Roll Effect</title>
+  <style>
+    :root{
+      --header-height: 220px; /* sesuaikan tinggi header */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:#111;color:#fff;font-family:Arial,Helvetica,sans-serif}
+
+    /* Fixed header with placeholder image */
+    header{
+      position:fixed;
+      top:0;left:0;right:0;
+      height:var(--header-height);
+      background:#000;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:1000; /* cover the spawned images so they "come out" from under */
+      overflow:hidden; /* keep header opaque */
+      border-bottom: 6px solid rgba(255,255,255,0.02);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    }
+
+    header img{height:calc(var(--header-height) - 20px);object-fit:contain}
+
+    /* Page content so we can scroll */
+    main{
+      padding-top: calc(var(--header-height) + 20px);
+      min-height:200vh; /* enough space to scroll */
+    }
+
+    .spawner{
+      position:fixed;
+      left:0;right:0;
+      top: calc(var(--header-height) - 10px); /* start just below header top so images look like they come out */
+      height: 0; /* invisible container, children are absolutely positioned */
+      pointer-events:none; /* images don't block interactions */
+      z-index:900; /* below header so header masks images above it */
+      overflow:visible;
+    }
+
+    .roll{
+      position:absolute;
+      width:80px;height:80px;
+      will-change:transform,opacity;
+      transform-origin:center center;
+      border-radius:8px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.6);
+      opacity:0;
+      backface-visibility:hidden;
+      transform: translateY(0) rotateX(0) rotateZ(0) scale(0.9);
+    }
+
+    /* animation keyframes for roll + travel (we'll vary direction/duration in JS) */
+    @keyframes rollOut {
+      0%{opacity:0; transform: translateY(var(--start-y,0)) rotateX(-80deg) rotateZ(0) scale(0.6)}
+      20%{opacity:1}
+      60%{transform: translateY(var(--mid-y,100px)) rotateX(0) rotateZ(var(--spin,360deg)) scale(1)}
+      100%{opacity:0; transform: translateY(var(--end-y,200px)) rotateX(30deg) rotateZ(var(--spin,720deg)) scale(0.9)}
+    }
+
+    /* small helper elements to show page content */
+    .content-block{max-width:900px;margin:24px auto;padding:18px;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));border-radius:10px}
+
+    .hint{opacity:0.7;font-size:14px;margin-bottom:6px}
+
+    /* responsive tweaks */
+    @media (max-width:600px){:root{--header-height:160px} .roll{width:60px;height:60px}}
+  </style>
+</head>
+<body>
+  <header>
+    <!-- Placeholder header image name boxfilm.png; put the file in the same folder or adjust path -->
+    <img src="boxfilm.png" alt="Box Film Header" id="headerImg">
+  </header>
+
+  <!-- spawner layer where roll images will be appended; sits under header (z-index 900) -->
+  <div class="spawner" id="spawner" aria-hidden="true"></div>
+
+  <main>
+    <div class="content-block">
+      <div class="hint">Scroll ke bawah / ke atas — saat scroll akan muncul banyak gambar "roll" seakan keluar dari header.</div>
+      <h1>Demo Scroll Roll Effect</h1>
+      <p>File ini menunjukkan efek: header tetap di atas (gambar <code>boxfilm.png</code>), dan setiap event scroll/wheel/touch akan memunculkan banyak gambar yang bergerak dan berputar seperti roll. Header memiliki z-index yang lebih tinggi sehingga gambar terlihat "keluar" dari bawah header dan tidak tembus ke atasnya.</p>
+    </div>
+
+    <!-- repeat some content blocks to create scrollable area -->
+    <div class="content-block"><p>Konten isian... gulir untuk melihat efek.</p></div>
+    <div class="content-block"><p>Konten tambahan... gulir lagi.</p></div>
+    <div class="content-block"><p>Konten tambahan... gulir lagi.</p></div>
+    <div class="content-block"><p>Konten tambahan... gulir lagi.</p></div>
+    <div class="content-block"><p>Konten tambahan... gulir lagi.</p></div>
+  </main>
+
+  <script>
+    (function(){
+      const spawner = document.getElementById('spawner');
+      const header = document.querySelector('header');
+      const headerImg = document.getElementById('headerImg');
+
+      // List of local assets to use when available, fallback to picsum
+      const localAssets = [
+        'assets/envelope1.png','assets/envelope2.png','assets/envelope3.png','assets/envelope4.png','assets/envelope5.png','assets/envelope6.png',
+        'assets/bag.png','assets/bagopen.png','assets/note.png','assets/noteopen.png'
+      ];
+
+      let assetIndex = 0;
+
+      function chooseAsset(i){
+        const p = i % localAssets.length;
+        // If the file exists in workspace it will load; if not, browser shows broken image. To be safe, use picsum if localAssets missing by commenting/uncommenting.
+        return localAssets[p];
+      }
+
+      // spawnRoll: create a rolling image at x (px) position, direction 1 = down, -1 = up
+      function spawnRoll(x, direction, count){
+        count = count || 1;
+        for(let i=0;i<count;i++){
+          const el = document.createElement('img');
+          el.className = 'roll';
+          // choose asset with small randomness
+          const idx = (assetIndex++) + i;
+          el.src = chooseAsset(idx);
+          el.alt = 'roll';
+
+          // randomize size a bit
+          const size = (Math.random()*0.5 + 0.8) * (window.innerWidth < 600 ? 60 : 80);
+          el.style.width = size + 'px';
+          el.style.height = size + 'px';
+
+          // place horizontally around given x (within viewport)
+          const jitter = (Math.random()-0.5)*120;
+          const left = Math.min(Math.max(8, x + jitter - size/2), window.innerWidth - size - 8);
+          el.style.left = left + 'px';
+
+          // CSS custom props to control keyframes
+          const startY = direction > 0 ? -30 : 30; // start slightly above or below spawn line
+          const midY = direction > 0 ? (100 + Math.random()*160) : (-100 - Math.random()*160);
+          const endY = direction > 0 ? (220 + Math.random()*260) : (-220 - Math.random()*260);
+
+          el.style.setProperty('--start-y', startY + 'px');
+          el.style.setProperty('--mid-y', midY + 'px');
+          el.style.setProperty('--end-y', endY + 'px');
+
+          // spin amount
+          const spins = (Math.random()*2 + 1) * (Math.random()<0.5?1:-1) * 360;
+          el.style.setProperty('--spin', spins + 'deg');
+
+          // random animation duration
+          const dur = (Math.random()*0.9 + 0.8) * 1000; // 800ms - 1700ms
+          el.style.animation = `rollOut ${dur}ms cubic-bezier(.2,.9,.2,1)`;
+
+          // vertical starting position is 0 relative to spawner (which is at header bottom)
+          el.style.top = ( -parseInt(getComputedStyle(document.documentElement).getPropertyValue('--header-height'))/2 ) + 'px';
+
+          // append
+          spawner.appendChild(el);
+
+          // remove after animation
+          setTimeout(()=>{
+            if(el && el.parentNode) el.parentNode.removeChild(el);
+          }, dur + 80);
+        }
+      }
+
+      // Handle wheel events to spawn rolls. We'll spawn multiple images per scroll delta to give the "banyak" feel.
+      let lastWheel = 0;
+      window.addEventListener('wheel', (e)=>{
+        // ignore very small moves
+        if(Math.abs(e.deltaY) < 1) return;
+        const now = Date.now();
+        // determine spawn count from deltaY magnitude
+        const mag = Math.min(8, Math.ceil(Math.abs(e.deltaY) / 10));
+
+          // choose direction: inverted mapping — if deltaY > 0 (scroll down) spawn upwards
+          // this produces an inverted behavior (scroll down -> rolls move upward)
+          const direction = e.deltaY > 0 ? -1 : 1;
+
+        // spawn near the center top or near pointer
+        const x = e.clientX || window.innerWidth/2;
+
+        spawnRoll(x, direction, mag);
+
+        lastWheel = now;
+      }, {passive:true});
+
+      // touch move support: spawn based on touchmove
+      let lastTouchY = null;
+      window.addEventListener('touchstart', (e)=>{
+        if(e.touches && e.touches[0]) lastTouchY = e.touches[0].clientY;
+      }, {passive:true});
+      window.addEventListener('touchmove', (e)=>{
+        if(!e.touches || !e.touches[0]) return;
+        const t = e.touches[0];
+        const dy = lastTouchY != null ? t.clientY - lastTouchY : 0;
+        const x = t.clientX;
+        // inverted mapping for touch: finger move down (dy>0) -> spawn upward (direction -1)
+        const direction = dy > 0 ? -1 : 1;
+        spawnRoll(x, direction, 2);
+        lastTouchY = t.clientY;
+      }, {passive:true});
+
+      // Also spawn a few when page first loads so user sees effect immediately
+      window.addEventListener('load', ()=>{
+        const w = window.innerWidth;
+        for(let i=0;i<6;i++){
+          // show initial rolls using inverted direction (upwards)
+          setTimeout(()=>spawnRoll(w/2 + (Math.random()-0.5)*300, -1, 1), i*150);
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>

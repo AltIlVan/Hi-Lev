@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Roll Film - Prototype</title>
+<!-- Tambahkan font Inter dari Google Fonts jika belum tersedia -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:400,700&display=swap">
+<style>
+  :root { --roll-width: 220px; --box-top-gap: 20px; }
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial;}
+  /* Box fixed di atas */
+  .film-box{
+    position:fixed;
+    top:var(--box-top-gap);
+    left:50%;
+    transform:translateX(-50%);
+    width:var(--roll-width);
+    z-index:20;
+    pointer-events:none;
+  }
+  .film-box img{width:100%; display:block;}
+
+  /* kontainer scroll: beri tinggi total sesuai panjang roll (so browser scroll ada) */
+  .spacer{ height: 4000px; /* sementara, nanti JS bisa sesuaikan */ }
+
+  /* viewport visual area (center) */
+  .viewport {
+    position:relative;
+    width:100%;
+    height:100vh;
+    overflow:hidden;
+    pointer-events:auto;
+  }
+
+  /* area di mana roll ditempatkan: pos relatif; kita pindah pakai transform */
+  .roll-wrap {
+    position:absolute;
+    top: calc(var(--box-top-gap) + 80px); /* pos start sedikit keluar dari box */
+    left:50%;
+    transform: translateX(-50%) translateY(0);
+    width:var(--roll-width);
+    will-change: transform;
+    z-index:10;
+  }
+
+  .roll-segment{
+    display:block;
+    width:100%;
+    margin:0;
+    /* untuk menyamarkan seam: sedikit overlap */
+    margin-top: -1px;
+  }
+
+  /* bubble caption */
+  .bubble {
+    position:fixed;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:8vh;
+    background:rgba(255,255,255,0.95);
+    padding:12px 16px;
+    border-radius:12px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.12);
+    max-width:70%;
+    text-align:center;
+    z-index:30;
+    font-size:14px;
+    display:none;
+  }
+
+  /* kecilkan ukuran di layar lebar supaya proporsional */
+  @media(min-width:900px){
+    :root{ --roll-width:300px; }
+    .spacer{ height: 3500px; }
+  }
+</style>
+</head>
+<body>
+  <!-- film box fixed -->
+  <div class="film-box">
+    <img src="assets/boxfilm.png" alt="Box film">
+  </div>
+
+  <!-- viewport (visual scene) -->
+  <div class="viewport" aria-hidden="false">
+    <div class="roll-wrap" id="rollWrap">
+      <!-- potongan roll — beri data-caption dan alt -->
+      <img class="roll-segment" src="assets/roll_part1.png" data-caption="Liburan pertama, pantai" loading="lazy" alt="Liburan pertama, pantai">
+      <img class="roll-segment" src="assets/roll_part2.png" data-caption="Pulang kampung & reunian" loading="lazy" alt="Pulang kampung & reunian">
+      <img class="roll-segment" src="assets/roll_part3.png" data-caption="Senja dan kopi" loading="lazy" alt="Senja dan kopi">
+      <!-- tambahkan sesuai kebutuhan -->
+    </div>
+  </div>
+
+  <!-- spacer: supaya ada scrollbar (tinggi sesuaikan total roll height) -->
+  <div class="spacer" id="spacer"></div>
+
+  <!-- bubble caption -->
+  <div class="bubble" id="bubble"></div>
+
+<script>
+(function(){
+  const rollWrap = document.getElementById('rollWrap');
+  const segments = Array.from(document.querySelectorAll('.roll-segment'));
+  const bubble = document.getElementById('bubble');
+  const spacer = document.getElementById('spacer');
+
+  // ----- 1) Sesuaikan spacer height berdasarkan total height segmen (opsional) -----
+  function updateSpacer() {
+    let total = 0;
+    segments.forEach(img => {
+      const h = img.naturalHeight ? img.naturalHeight * (parseInt(getComputedStyle(rollWrap).width) / img.naturalWidth) : 1000;
+      total += h;
+    });
+    spacer.style.height = Math.max(total + window.innerHeight, 2000) + 'px';
+  }
+
+  // Tunggu semua images load untuk ukuran akurat
+  let loaded = 0;
+  segments.forEach(img=>{
+    if(img.complete) loaded++;
+    img.addEventListener('load', ()=>{
+      loaded++;
+      if(loaded === segments.length) updateSpacer();
+    }, {once:true});
+  });
+  if(loaded === segments.length) updateSpacer();
+
+  // ----- 2) Smooth mapping scroll -> translateY (gunakan rAF) -----
+  let lastScroll = window.scrollY;
+  let ticking = false;
+
+  function onScroll() {
+    lastScroll = window.scrollY;
+    if(!ticking){
+      window.requestAnimationFrame(()=> {
+        const speedMul = 1.0;
+        rollWrap.style.transform = `translateX(-50%) translateY(${lastScroll * speedMul}px)`;
+        ticking = false;
+      });
+      ticking = true;
+    }
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+
+  // ----- 3) Bubble logic: gunakan IntersectionObserver untuk efisiensi -----
+  let currentBubble = null;
+  let bubbleTimeout = null;
+
+  function showBubble(img) {
+    bubble.textContent = img.dataset.caption || '';
+    bubble.style.display = 'block';
+    bubble.style.opacity = '1';
+    currentBubble = img;
+    if(bubbleTimeout) clearTimeout(bubbleTimeout);
+  }
+
+  function hideBubble() {
+    bubble.style.opacity = '0';
+    bubbleTimeout = setTimeout(()=>bubble.style.display = 'none', 200);
+    currentBubble = null;
+  }
+
+  // Observer untuk bubble caption
+  const observer = new IntersectionObserver((entries)=>{
+    let best = null;
+    let bestDist = Infinity;
+    const centerY = window.innerHeight / 2;
+    entries.forEach(entry=>{
+      if(entry.isIntersecting) {
+        const rect = entry.target.getBoundingClientRect();
+        const segCenter = rect.top + rect.height / 2;
+        const dist = Math.abs(segCenter - centerY);
+        if(dist < bestDist) { bestDist = dist; best = entry.target; }
+      }
+    });
+    const threshold = 120;
+    if(best && bestDist < threshold) {
+      showBubble(best);
+    } else {
+      hideBubble();
+    }
+  }, {
+    root: null,
+    threshold: 0.5
+  });
+
+  segments.forEach(img => observer.observe(img));
+
+  // Update observer on resize
+  let rto;
+  window.addEventListener('resize', ()=> {
+    clearTimeout(rto);
+    rto = setTimeout(()=>{
+      updateSpacer();
+      observer.disconnect();
+      segments.forEach(img => observer.observe(img));
+    }, 200);
+  });
+
+  // Optional: keyboard / pageUpDown support
+  window.addEventListener('keydown', e => {
+    if(e.key === 'PageDown') window.scrollBy({top: window.innerHeight * 0.9, behavior:'smooth'});
+    if(e.key === 'PageUp') window.scrollBy({top: -window.innerHeight * 0.9, behavior:'smooth'});
+  });
+
+})();
+</script>
+</body>
+</html>

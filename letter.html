@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>The Letter</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="letter-envelope-scene" id="sceneEnvelope">
+        <div class="envelope-placeholder">
+            <img src="assets/envelopevina.png" alt="Envelope" class="envelope-img envelope-img-closed" id="envelopeImgClosed">
+            <img src="assets/envelopevinaopen.png" alt="Envelope Open" class="envelope-img envelope-img-open" id="envelopeImgOpen">
+            <button class="open-envelope-btn" id="openEnvelopeBtn">
+                <img src="assets/openenv.gif" alt="Open Envelope" class="openenv-gif">
+            </button>
+            <img src="assets/camera.png" alt="Camera" class="envelope-item camera-item" id="cameraItem">
+            <img src="assets/letter.png" alt="Letter" class="envelope-item letter-item" id="letterItem">
+            <img src="assets/pantone.png" alt="Pantone" class="envelope-item pantone-item" id="pantoneItem">
+        </div>
+    </div>
+
+    <!-- Camera Detail View -->
+    <div class="detail-view" id="cameraView">
+        <button class="back-btn" id="backFromCamera"><img src="assets/back.png" alt="Back" class="back-icon"></button>
+        <div class="detail-content">
+            <img src="assets/camera.png" alt="Camera" class="detail-img">
+            <h2>Camera</h2>
+            <p>Isi/konten kamera di sini...</p>
+        </div>
+    </div>
+
+    <!-- Letter Detail View -->
+    <div class="detail-view" id="letterView">
+        <button class="back-btn" id="backFromLetter"><img src="assets/back.png" alt="Back" class="back-icon"></button>
+        <div class="detail-content">
+            <img src="assets/letter.png" alt="Letter" class="detail-img">
+            <h2>Letter</h2>
+            <p>Isi/konten surat di sini...</p>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Force reset state untuk fresh load
+        window.localStorage.removeItem('envelopeOpened');
+        // SPA state
+        const openBtn = document.getElementById('openEnvelopeBtn');
+        const envelopeImgClosed = document.getElementById('envelopeImgClosed');
+        const envelopeImgOpen = document.getElementById('envelopeImgOpen');
+        const cameraItem = document.getElementById('cameraItem');
+        const letterItem = document.getElementById('letterItem');
+        const pantoneItem = document.getElementById('pantoneItem');
+        const sceneEnvelope = document.getElementById('sceneEnvelope');
+        const cameraView = document.getElementById('cameraView');
+        const letterView = document.getElementById('letterView');
+        const backFromCamera = document.getElementById('backFromCamera');
+        const backFromLetter = document.getElementById('backFromLetter');
+
+        // Checkpoint: envelope opened state
+        let opened = false;
+
+        // On load, cek checkpoint
+        if (window.localStorage.getItem('envelopeOpened') === '1') {
+            opened = true;
+            envelopeImgClosed.classList.add('is-open');
+            envelopeImgOpen.classList.add('is-open');
+            cameraItem.classList.add('item-out');
+            letterItem.classList.add('item-out');
+            pantoneItem.classList.add('item-out');
+            openBtn.style.display = 'none';
+        }
+
+        openBtn.addEventListener('click', function() {
+            if (opened) return;
+            opened = true;
+            // Tambah class untuk trigger animasi
+            envelopeImgClosed.classList.add('is-open');
+            envelopeImgOpen.classList.add('is-open');
+            // Animasi keluar item
+            cameraItem.classList.add('item-out');
+            letterItem.classList.add('item-out');
+            pantoneItem.classList.add('item-out');
+            openBtn.style.display = 'none';
+            window.localStorage.setItem('envelopeOpened', '1');
+        });
+
+        // SPA navigation
+        cameraItem.addEventListener('click', function() {
+            if (!opened) return;
+            sceneEnvelope.style.display = 'none';
+            cameraView.style.display = 'flex';
+        });
+        letterItem.addEventListener('click', function() {
+            if (!opened) return;
+            sceneEnvelope.style.display = 'none';
+            letterView.style.display = 'flex';
+        });
+        backFromCamera.addEventListener('click', function() {
+            cameraView.style.display = 'none';
+            sceneEnvelope.style.display = 'flex';
+        });
+        backFromLetter.addEventListener('click', function() {
+            letterView.style.display = 'none';
+            sceneEnvelope.style.display = 'flex';
+        });
+
+        // Hide detail views on load
+        cameraView.style.display = 'none';
+        letterView.style.display = 'none';
+    });
+    </script>
+</body>
+</html>
