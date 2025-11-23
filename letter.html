@@ -16,7 +16,6 @@
             </button>
             <img src="assets/camera.png" alt="Camera" class="envelope-item camera-item" id="cameraItem">
             <img src="assets/letter.png" alt="Letter" class="envelope-item letter-item" id="letterItem">
-            <img src="assets/pantone.png" alt="Pantone" class="envelope-item pantone-item" id="pantoneItem">
         </div>
     </div>
 
@@ -26,17 +25,22 @@
         <div class="detail-content">
             <img src="assets/camera.png" alt="Camera" class="detail-img">
             <h2>Camera</h2>
-            <p>Isi/konten kamera di sini...</p>
+            <p>Maaf banget pin fitur kamera photobooth masih on development</p>
         </div>
     </div>
 
     <!-- Letter Detail View -->
     <div class="detail-view" id="letterView">
-        <button class="back-btn" id="backFromLetter"><img src="assets/back.png" alt="Back" class="back-icon"></button>
-        <div class="detail-content">
-            <img src="assets/letter.png" alt="Letter" class="detail-img">
-            <h2>Letter</h2>
-            <p>Isi/konten surat di sini...</p>
+        <div class="letter-stack-container">
+            <button class="close-letter-btn" id="backFromLetter" aria-label="Close"><span style="font-size:2rem;color:#ff9900;font-weight:bold;">&#10005;</span></button>
+            <div class="letter-stack" id="letterStack">
+                <!-- Pages will be injected here -->
+            </div>
+            <div class="letter-nav">
+                <button class="nav-arrow" id="prevPage" aria-label="Previous Page" style="background:none;border:none;"><img src="assets/arrow-left.png" alt="Prev" style="width:36px;height:36px;"></button>
+                <span class="page-counter" id="pageCounter">1/5</span>
+                <button class="nav-arrow" id="nextPage" aria-label="Next Page" style="background:none;border:none;"><img src="assets/arrow-right.png" alt="Next" style="width:36px;height:36px;"></button>
+            </div>
         </div>
     </div>
 
@@ -50,12 +54,82 @@
         const envelopeImgOpen = document.getElementById('envelopeImgOpen');
         const cameraItem = document.getElementById('cameraItem');
         const letterItem = document.getElementById('letterItem');
-        const pantoneItem = document.getElementById('pantoneItem');
         const sceneEnvelope = document.getElementById('sceneEnvelope');
         const cameraView = document.getElementById('cameraView');
         const letterView = document.getElementById('letterView');
         const backFromCamera = document.getElementById('backFromCamera');
         const backFromLetter = document.getElementById('backFromLetter');
+
+        // Letter stack logic
+        const letterStack = document.getElementById('letterStack');
+        const prevPageBtn = document.getElementById('prevPage');
+        const nextPageBtn = document.getElementById('nextPage');
+        const pageCounter = document.getElementById('pageCounter');
+        // Example: 13 pages, assets/page1.png ... assets/page13.png
+        const totalPages = 13;
+        let currentPage = 1;
+
+        function renderStack(page) {
+            // Clear stack
+            letterStack.innerHTML = '';
+            // Show current page on top, next 2 pages behind for stack effect
+            for (let i = Math.max(1, page - 2); i <= Math.min(totalPages, page + 1); i++) {
+                const img = document.createElement('img');
+                img.src = `assets/page${i}.png`;
+                img.alt = `Page ${i}`;
+                img.className = 'letter-page-img';
+                img.style.zIndex = (i === page) ? 3 : (i === page - 1 ? 2 : 1);
+                img.style.position = 'absolute';
+                img.style.left = '0';
+                img.style.right = '0';
+                img.style.margin = 'auto';
+                // Messy stack effect for pages behind the top
+                if (i < page) {
+                    // Use a seeded pseudo-random for consistent messiness
+                    const seed = i * 13;
+                    const rot = ((seed % 15) - 7) + (i % 2 === 0 ? 2 : -2); // -7 to +7 deg
+                    const x = ((seed % 9) - 4); // -4 to +4 px
+                    const y = ((seed % 7) - 3); // -3 to +3 px
+                    img.style.transform = `rotate(${rot}deg) translate(${x}px, ${y}px)`;
+                    img.style.top = '0';
+                    img.style.opacity = '0.7';
+                } else if (i === page) {
+                    img.style.top = '0';
+                    img.style.opacity = '1';
+                    img.style.transform = 'none';
+                } else {
+                    // Next page (for stack effect)
+                    img.style.top = '16px';
+                    img.style.opacity = '0.7';
+                    img.style.transform = 'rotate(2deg)';
+                }
+                letterStack.appendChild(img);
+            }
+            pageCounter.textContent = `${page}/${totalPages}`;
+            prevPageBtn.disabled = (page === 1);
+            nextPageBtn.disabled = (page === totalPages);
+        }
+
+        function animatePage(direction) {
+            // Animate top page out, then update
+            const topImg = letterStack.querySelector('img[style*="z-index: 3"]');
+            if (!topImg) return;
+            topImg.style.transition = 'transform 0.3s cubic-bezier(.4,0,.2,1), opacity 0.3s';
+            topImg.style.transform = direction === 'next' ? 'translateY(60px) rotate(-4deg) scale(0.96)' : 'translateY(-60px) rotate(4deg) scale(0.96)';
+            topImg.style.opacity = '0';
+            setTimeout(() => {
+                if (direction === 'next' && currentPage < totalPages) currentPage++;
+                if (direction === 'prev' && currentPage > 1) currentPage--;
+                renderStack(currentPage);
+            }, 280);
+        }
+
+        prevPageBtn.addEventListener('click', function() {
+            if (currentPage > 1) animatePage('prev');
+        });
+        nextPageBtn.addEventListener('click', function() {
+            if (currentPage < totalPages) animatePage('next');
+        });
 
         // Checkpoint: envelope opened state
         let opened = false;
@@ -67,7 +141,6 @@
             envelopeImgOpen.classList.add('is-open');
             cameraItem.classList.add('item-out');
             letterItem.classList.add('item-out');
-            pantoneItem.classList.add('item-out');
             openBtn.style.display = 'none';
         }
 
@@ -80,7 +153,6 @@
             // Animasi keluar item
             cameraItem.classList.add('item-out');
             letterItem.classList.add('item-out');
-            pantoneItem.classList.add('item-out');
             openBtn.style.display = 'none';
             window.localStorage.setItem('envelopeOpened', '1');
         });
@@ -95,6 +167,8 @@
             if (!opened) return;
             sceneEnvelope.style.display = 'none';
             letterView.style.display = 'flex';
+            renderStack(currentPage);
+            document.body.style.overflow = 'hidden'; // Prevent scroll
         });
         backFromCamera.addEventListener('click', function() {
             cameraView.style.display = 'none';
@@ -103,6 +177,7 @@
         backFromLetter.addEventListener('click', function() {
             letterView.style.display = 'none';
             sceneEnvelope.style.display = 'flex';
+            document.body.style.overflow = '';
         });
 
         // Hide detail views on load
@@ -110,5 +185,104 @@
         letterView.style.display = 'none';
     });
     </script>
+    <style>
+    .letter-stack-container {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100vw;
+        height: 100vh;
+        max-width: 100vw;
+        max-height: 100vh;
+        background: #fff;
+        box-sizing: border-box;
+        touch-action: none;
+    }
+    .letter-stack {
+        position: relative;
+        width: clamp(180px, 70vw, 340px);
+        aspect-ratio: 3/4;
+        height: auto;
+        max-height: 70vh;
+        margin: 0 auto 0.5rem auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+    }
+    .letter-page-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10);
+        border-radius: 0.5em;
+        background: #fffbe8;
+        position: absolute;
+        left: 0; top: 0;
+        transition: transform 0.3s cubic-bezier(.4,0,.2,1), opacity 0.3s;
+        z-index: 1;
+        user-select: none;
+        -webkit-user-drag: none;
+    }
+    .letter-nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2.5rem;
+        margin-top: 0.5rem;
+        width: 100%;
+    }
+    .nav-arrow[disabled] {
+        opacity: 0.3;
+        pointer-events: none;
+    }
+    .page-counter {
+        font-size: 1.2rem;
+        font-family: monospace;
+        color: #222;
+        font-weight: bold;
+        letter-spacing: 0.1em;
+    }
+    .close-letter-btn {
+        background: none;
+        border: none;
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        z-index: 10;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 0.5rem;
+        transition: background 0.3s;
+    }
+    .close-letter-btn:hover {
+        background: rgba(255, 153, 0, 0.1);
+    }
+    @media (max-width: 600px) {
+        .letter-stack {
+            width: 92vw;
+            aspect-ratio: 3/4;
+            height: auto;
+            max-height: 62vh;
+            min-width: 140px;
+            min-height: 180px;
+        }
+        .letter-nav {
+            gap: 1.2rem;
+            margin-top: 1.2rem;
+        }
+        .nav-arrow img {
+            width: 44px;
+            height: 44px;
+        }
+        .page-counter {
+            font-size: 1rem;
+        }
+    }
+    </style>
 </body>
 </html>
