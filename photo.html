@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lev Photobooth</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&family=Patrick+Hand&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- DESIGN SYSTEM --- */
+        :root {
+            --paper-color: #fdfbf7;
+            --ink-color: #2c2c2c;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Patrick Hand', cursive;
+            background-color: #eee;
+            background-image: radial-gradient(#ddd 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--ink-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden; /* Mencegah scroll saat di kamera */
+        }
+
+        #app-container {
+            width: 100%;
+            max-width: 500px; /* Ukuran tampilan di HP */
+            height: 95vh;
+            background: var(--paper-color);
+            position: relative;
+            padding: 20px;
+            /* Efek kertas tidak rapi */
+            border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.1);
+            border: 2px solid var(--ink-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow-y: auto;
+        }
+
+        h1, h2 { font-family: 'Indie Flower', cursive; font-weight: bold; }
+
+        /* Tombol Sketchy */
+        .btn-sketchy {
+            background: transparent;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.5rem;
+            padding: 10px 30px;
+            margin: 10px;
+            cursor: pointer;
+            border: 3px solid var(--ink-color);
+            border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            transition: transform 0.1s;
+        }
+        .btn-sketchy:hover { background: #ffecb3; transform: scale(1.05) rotate(-1deg); }
+        .btn-sketchy:active { transform: scale(0.95); }
+
+        .hidden { display: none !important; }
+
+        /* --- HALAMAN KAMERA --- */
+        #camera-container {
+            position: relative;
+            width: 100%;
+            border: 5px solid var(--ink-color);
+            border-radius: 2% 98% 1% 99% / 98% 2% 98% 2%; 
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 3/4; /* Menjaga rasio tampilan kamera */
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1); /* Mirror */
+        }
+
+        #countdown-overlay {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            font-family: 'Indie Flower', cursive;
+            color: white;
+            text-shadow: 4px 4px 0 #000;
+            pointer-events: none;
+            display: none;
+        }
+
+        #flash {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; opacity: 0; pointer-events: none;
+        }
+        .flash-anim { animation: flashEffect 0.2s ease-out; }
+        @keyframes flashEffect { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+        /* --- HALAMAN EDITING --- */
+        .template-selector {
+            display: flex; justify-content: center; gap: 15px; margin: 15px 0;
+        }
+        .template-btn {
+            width: 60px; height: 80px;
+            border: 2px solid var(--ink-color);
+            background: #fff; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem;
+            border-radius: 5px;
+        }
+        .template-btn.active {
+            background: var(--ink-color); color: white;
+        }
+
+        #result-preview {
+            width: 100%;
+            max-width: 300px;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            border: 2px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <section id="landing-page">
+            <div style="font-size: 5rem;">📸</div> 
+            <h1>Sketsa Photobooth</h1>
+            <p>Siapkan pose terbaikmu!</p>
+            <button class="btn-sketchy" onclick="startExperience()">Buka Kamera</button>
+        </section>
+
+        <section id="camera-page" class="hidden">
+            <h2>Pose <span id="photo-status">1/4</span></h2>
+            <div id="camera-container">
+                <video id="video" autoplay playsinline></video>
+                <div id="countdown-overlay"></div>
+                <div id="flash"></div>
+            </div>
+            <p style="margin-top:10px; font-size: 0.9rem; opacity: 0.7;">Otomatis jepret 4x...</p>
+        </section>
+
+        <section id="editing-page" class="hidden">
+            <canvas id="final-canvas" class="hidden"></canvas> 
+            
+            <img id="result-preview" src="" alt="Menunggu hasil...">
+
+            <div class="template-selector">
+                <div class="template-btn active" onclick="setTemplate(1)">Grid</div>
+                <div class="template-btn" onclick="setTemplate(2)">Strip</div>
+            </div>
+
+            <button class="btn-sketchy" onclick="downloadPhoto()">Simpan (HD)</button>
+            <br>
+            <button style="background:none; border:none; text-decoration:underline; cursor:pointer; font-family:inherit; color: #888;" onclick="location.reload()">Ulangi</button>
+        </section>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const PHOTO_COUNT = 4;
+        const COUNTDOWN_SECONDS = 3;
+        const OUTPUT_WIDTH = 1200; 
+        const OUTPUT_HEIGHT = 1800; // Rasio 2:3
+
+        // --- STATE ---
+        let stream = null;
+        let photos = []; 
+        let currentPhotoIndex = 0;
+        let selectedTemplate = 1;
+
+        // --- DOM ---
+        const landingPage = document.getElementById('landing-page');
+        const cameraPage = document.getElementById('camera-page');
+        const editingPage = document.getElementById('editing-page');
+        const video = document.getElementById('video');
+        const countdownEl = document.getElementById('countdown-overlay');
+        const flashEl = document.getElementById('flash');
+        const statusEl = document.getElementById('photo-status');
+        const finalCanvas = document.getElementById('final-canvas');
+        const resultPreview = document.getElementById('result-preview');
+
+        // --- FUNGSI UTAMA ---
+
+        async function startExperience() {
+            try {
+                // Minta resolusi tinggi
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "user", width: { ideal: 1920 }, height: { ideal: 1080 } } 
+                });
+                video.srcObject = stream;
+                landingPage.classList.add('hidden');
+                cameraPage.classList.remove('hidden');
+                setTimeout(runPhotoSequence, 1000);
+            } catch (err) {
+                alert("Gagal akses kamera: " + err);
+            }
+        }
+
+        function runPhotoSequence() {
+            if (currentPhotoIndex >= PHOTO_COUNT) {
+                finishCapture();
+                return;
+            }
+            statusEl.innerText = `${currentPhotoIndex + 1}/${PHOTO_COUNT}`;
+            let count = COUNTDOWN_SECONDS;
+            countdownEl.innerText = count;
+            countdownEl.style.display = 'block';
+
+            const timer = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownEl.innerText = count;
+                } else {
+                    clearInterval(timer);
+                    countdownEl.style.display = 'none';
+                    snapPhoto();
+                }
+            }, 1000);
+        }
+
+        function snapPhoto() {
+            flashEl.classList.add('flash-anim');
+            setTimeout(() => flashEl.classList.remove('flash-anim'), 500);
+
+            // Ambil resolusi asli video untuk kualitas maksimal
+            const vWidth = video.videoWidth;
+            const vHeight = video.videoHeight;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = vWidth;
+            tempCanvas.height = vHeight;
+            const ctx = tempCanvas.getContext('2d');
+            
+            // Mirror
+            ctx.translate(vWidth, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0);
+
+            photos.push(tempCanvas);
+            currentPhotoIndex++;
+            setTimeout(runPhotoSequence, 1500);
+        }
+
+        function finishCapture() {
+            if(stream) stream.getTracks().forEach(track => track.stop());
+            cameraPage.classList.add('hidden');
+            editingPage.classList.remove('hidden');
+            generateResult();
+        }
+
+        function setTemplate(type) {
+            selectedTemplate = type;
+            document.querySelectorAll('.template-btn').forEach((btn, idx) => {
+                if (idx + 1 === type) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+            generateResult();
+        }
+
+        // --- CORE LOGIC: GENERATE FINAL IMAGE ---
+        function generateResult() {
+            finalCanvas.width = OUTPUT_WIDTH;
+            finalCanvas.height = OUTPUT_HEIGHT;
+            const ctx = finalCanvas.getContext('2d');
+
+            // 1. Background Kertas
+            ctx.fillStyle = "#fdfbf7"; 
+            ctx.fillRect(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+
+            let templateSrc = "";
+            let positions = [];
+            let photoW, photoH;
+
+            // 2. Kalkulasi Posisi Berdasarkan Tipe
+            if (selectedTemplate === 1) {
+                // === GRID MODE (CENTERED) ===
+                templateSrc = "assets/template_grid.png"; 
+                
+                const marginX = 80;
+                const gap = 40;
+                
+                // Lebar & Tinggi Foto
+                photoW = (OUTPUT_WIDTH - (marginX * 2) - gap) / 2;
+                photoH = photoW * 0.75; // Rasio 4:3
+
+                // Hitung total tinggi grid untuk centering
+                const totalGridHeight = (photoH * 2) + gap;
+                
+                // Rumus Center Vertikal
+                // (TinggiCanvas - TinggiKonten) / 2
+                let topOffset = (OUTPUT_HEIGHT - totalGridHeight) / 2;
+                
+                // Sedikit adjustment biar visualnya enak (biasanya grid agak ke bawah dikit)
+                topOffset = topOffset + 50; 
+
+                positions = [
+                    { x: marginX, y: topOffset },
+                    { x: marginX + photoW + gap, y: topOffset },
+                    { x: marginX, y: topOffset + photoH + gap },
+                    { x: marginX + photoW + gap, y: topOffset + photoH + gap }
+                ];
+
+                // Draw Text (Opsional, akan tertimpa template PNG jika ada backgroundnya)
+                ctx.font = "bold 80px 'Indie Flower'";
+                ctx.fillStyle = "#2c2c2c";
+                ctx.textAlign = "center";
+                ctx.fillText("My Sketchy Day", OUTPUT_WIDTH/2, topOffset - 100);
+
+            } else {
+                // === STRIP MODE ===
+                templateSrc = "assets/template_strip.png"; 
+                
+                const marginY = 150;
+                const gap = 30;
+                const totalAvailableHeight = OUTPUT_HEIGHT - (marginY * 2);
+                
+                photoH = (totalAvailableHeight - (3 * gap)) / 4; 
+                photoW = photoH * (4/3); 
+                
+                const startX = (OUTPUT_WIDTH - photoW) / 2;
+
+                for (let i = 0; i < 4; i++) {
+                    positions.push({
+                        x: startX,
+                        y: marginY + (i * (photoH + gap))
+                    });
+                }
+
+                ctx.font = "60px 'Patrick Hand'";
+                ctx.fillStyle = "#2c2c2c";
+                ctx.textAlign = "center";
+                ctx.fillText("Created with Love", OUTPUT_WIDTH/2, OUTPUT_HEIGHT - 60);
+            }
+
+            // 3. Draw Photos (Layer Bawah)
+            photos.forEach((img, i) => {
+                if (positions[i]) {
+                    // Pakai drawImageProp biar tidak gepeng
+                    drawImageProp(ctx, img, positions[i].x, positions[i].y, photoW, photoH);
+                    
+                    // Efek garis coretan di sekitar foto (tetap ada biar artistik)
+                    strokeSketchyRect(ctx, positions[i].x, positions[i].y, photoW, photoH);
+                }
+            });
+
+            // 4. Draw Template Overlay (Layer Atas)
+            const overlayImage = new Image();
+            overlayImage.src = templateSrc;
+            
+            overlayImage.onload = () => {
+                ctx.drawImage(overlayImage, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
+                updatePreview();
+            };
+            
+            overlayImage.onerror = () => {
+                console.log("Template tidak ditemukan, menampilkan mode polos.");
+                updatePreview();
+            };
+        }
+
+        // --- HELPER FUNCTIONS ---
+
+        // Fungsi agar gambar cover (tidak gepeng)
+        function drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY) {
+            if (arguments.length === 2) {
+                x = y = 0;
+                w = ctx.canvas.width;
+                h = ctx.canvas.height;
+            }
+            offsetX = typeof offsetX === "number" ? offsetX : 0.5;
+            offsetY = typeof offsetY === "number" ? offsetY : 0.5;
+
+            if (offsetX < 0) offsetX = 0;
+            if (offsetY < 0) offsetY = 0;
+            if (offsetX > 1) offsetX = 1;
+            if (offsetY > 1) offsetY = 1;
+
+            var iw = img.width, ih = img.height,
+                r = Math.min(w / iw, h / ih),
+                nw = iw * r, nh = ih * r,
+                cx, cy, cw, ch, ar = 1;
+
+            if (nw < w) ar = w / nw;                             
+            if (Math.abs(ar - 1) < 1e-14 && nh < h) ar = h / nh;
+            nw *= ar; nh *= ar;
+
+            cw = iw / (nw / w); ch = ih / (nh / h);
+            cx = (iw - cw) * offsetX; cy = (ih - ch) * offsetY;
+
+            if (cx < 0) cx = 0; if (cy < 0) cy = 0;
+            if (cw > iw) cw = iw; if (ch > ih) ch = ih;
+
+            ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h);
+        }
+
+        // Fungsi menggambar kotak coretan manual
+        function strokeSketchyRect(ctx, x, y, w, h) {
+            ctx.strokeStyle = "#2c2c2c";
+            ctx.lineWidth = 8;
+            ctx.lineCap = "round";
+            ctx.beginPath();
+            ctx.moveTo(x - 2, y - 2);
+            ctx.lineTo(x + w + 5, y + 3);
+            ctx.lineTo(x + w - 2, y + h + 4);
+            ctx.lineTo(x + 3, y + h - 2);
+            ctx.lineTo(x - 4, y + 5);
+            ctx.stroke();
+        }
+
+        function updatePreview() {
+            const dataURL = finalCanvas.toDataURL('image/jpeg', 0.9);
+            resultPreview.src = dataURL;
+        }
+
+        function downloadPhoto() {
+            const link = document.createElement('a');
+            link.download = 'sketchy-moment-' + Date.now() + '.jpg';
+            link.href = finalCanvas.toDataURL('image/jpeg', 1.0);
+            link.click();
+        }
+    </script>
+</body>
+</html>
