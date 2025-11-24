@@ -56,7 +56,21 @@
             text-align: center;
             overflow-y: auto; /* Scrollable kalau konten kepanjangan */
         }
+/* Tambahan Style untuk Ikon Kamera di Depan */
+        .landing-icon {
+            width: 150px; /* Atur ukuran kamera sesuai selera, misal 120px - 180px */
+            height: auto;
+            margin-bottom: 20px; /* Jarak antara kamera dan tulisan Judul */
+            
+            /* Opsional: Efek "melayang" biar interaktif */
+            animation: floatAnim 3s ease-in-out infinite;
+        }
 
+        /* Animasi melayang */
+        @keyframes floatAnim {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
         h1 { font-size: 2rem; margin: 10px 0; }
         h2 { font-size: 1.5rem; margin: 5px 0; }
 
@@ -147,9 +161,10 @@
 
     <div id="app-container">
         <section id="landing-page">
-            <div style="font-size: 5rem;">📸</div> 
-            <h1>Sketsa Photobooth</h1>
-            <p>Siapkan pose terbaikmu!</p>
+            <img src="assets/camera.png" alt="Ikon Kamera" class="landing-icon">
+            
+            <h1>Photobooth buat kamuh</h1>
+            <p>Ayo pin kamu aku foto hehe</p>
             <button class="btn-sketchy" onclick="startExperience()">Buka Kamera</button>
         </section>
 
