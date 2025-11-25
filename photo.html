@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&family=Patrick+Hand&family=VT323&display=swap" rel="stylesheet">
 
     <style>
-        /* --- 1. DESIGN SYSTEM --- */
+        /* Design System */
         :root {
             --paper-color: #ffffff; 
             --ink-color: #111111;
@@ -48,7 +48,7 @@
             overflow: hidden; 
         }
 
-        /* --- PAGES SYSTEM --- */
+        
         .page {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             padding: 20px; padding-top: 40px;
@@ -67,7 +67,7 @@
         .page-centered { justify-content: center; padding-top: 0 !important; padding-bottom: 40px; }
         #page-landing.page { background: transparent; border: none; padding: 0; overflow: hidden; }
 
-        /* --- TYPOGRAPHY & ELEMENTS --- */
+        /* Typography & Elements */
         h1 { margin: 10px 0; font-size: 2rem; font-family: 'Indie Flower', cursive; line-height: 1; }
         h2 { margin: 10px 0; font-size: 1.5rem; }
         p { margin: 5px 0 15px 0; }
@@ -88,7 +88,7 @@
         .button-group { display: flex; width: 100%; gap: 10px; margin-top: 20px; margin-bottom: 20px; }
         .button-group button { flex: 1; }
 
-        /* --- INDUSTRIAL MACHINE STYLES --- */
+        /* Machine Styles */
         .machine-cabinet {
             width: 100%; height: 100%;
             background: linear-gradient(135deg, var(--machine-highlight) 0%, var(--machine-body) 50%, var(--machine-shadow) 100%);
@@ -131,7 +131,7 @@
         }
         .screen-content::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 3px); pointer-events: none; z-index: 5; }
         
-        /* --- LOCK SCREEN STYLES --- */
+        /* Lock Screen */
         .screen-section {
             width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -142,7 +142,6 @@
             opacity: 0; pointer-events: none; transform: scale(0.9);
         }
 
-        /* Robot Sketchy Sederhana */
         .sketchy-robot {
             width: 80px; height: 60px;
             border: 4px dashed var(--ink-color); border-radius: 10px;
@@ -150,14 +149,12 @@
             display: flex; justify-content: center; align-items: center;
             animation: robotHover 2s ease-in-out infinite;
         }
-        /* Mata Robot */
         .sketchy-robot::before, .sketchy-robot::after {
             content: ''; position: absolute; top: 15px;
             width: 12px; height: 12px; background: var(--ink-color); border-radius: 50%;
             animation: robotBlink 3s infinite;
         }
         .sketchy-robot::before { left: 18px; } .sketchy-robot::after { right: 18px; }
-        /* Mulut Robot */
         .robot-mouth {
             width: 30px; height: 8px; border: 3px solid var(--ink-color);
             border-top: none; border-radius: 0 0 10px 10px; margin-top: 15px;
@@ -165,7 +162,6 @@
         @keyframes robotHover { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
         @keyframes robotBlink { 0%, 90%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
 
-        /* Input Terminal Style */
         .terminal-input {
             background: #000; color: #0f0; font-family: 'VT323', monospace;
             border: 3px solid var(--ink-color); padding: 5px 10px;
@@ -182,21 +178,18 @@
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .screen-content h1 { font-size: 1.8rem; margin: 5px 0; }
 
-        /* --- GAYA UNTUK ROTASI TEKS --- */
-        /* Teks pada layar unlocked */
+        /* Text Rotation Styles */
         #screen-unlocked p {
-            transition: opacity 0.5s ease-in-out; /* Transisi halus */
+            transition: opacity 0.5s ease-in-out; 
             opacity: 1;
             min-height: 1.2em;
             display: flex; align-items: center;
             text-align: center;
         }
-        /* Teks pada judul kamera */
         #page-camera h2 {
              transition: opacity 0.3s ease-in-out;
              opacity: 1;
         }
-        /* Class untuk menyembunyikan teks saat transisi */
         .fade-out {
             opacity: 0 !important;
         }
@@ -231,11 +224,10 @@
         .big-red-button:active { transform: translateY(8px); box-shadow: 0 5px 10px rgba(0,0,0,0.5); background: radial-gradient(circle at 50% 50%, #770000, #330000); }
         .big-red-button span { font-size: 0.9rem; font-family: 'Patrick Hand'; opacity: 0.7; margin-top: 3px; }
         
-        /* Style untuk tombol fisik saat disable (terkunci) */
         .btn-disabled {
             filter: grayscale(100%) brightness(0.7);
             pointer-events: none;
-            transform: translateY(5px) !important; /* Efek tenggelam permanen */
+            transform: translateY(5px) !important; 
             box-shadow: 0 5px 10px rgba(0,0,0,0.5) !important;
         }
 
@@ -269,13 +261,12 @@
         }
         @keyframes tossIn { from { transform: translateY(100px); opacity: 0; } }
 
-        /* Result Preview */
+        /* Preview & Editor */
         #result-preview {
             width: 100%; max-width: 280px; height: auto; border: 4px solid #fff;
             box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin-top: 20px; margin-bottom: 25px; transform: rotate(1deg);
         }
 
-        /* Editing UI */
         .template-selector { display: flex; gap: 15px; margin-bottom: 10px; }
         .template-btn {
             width: 50px; height: 70px; border: 3px solid #ccc; cursor: pointer;
@@ -284,7 +275,6 @@
         }
         .template-btn.active { border-color: var(--ink-color); background: var(--ink-color); color: #fff; transform: scale(1.1); box-shadow: 3px 3px 0 #999; }
 
-        /* Editor Overlay */
         #editor-overlay {
             position: absolute; top: 100%; left: 0; width: 100%; height: 100%;
             background: var(--paper-color); z-index: 10;
@@ -318,7 +308,7 @@
 
         .hidden { display: none; }
 
-        /* --- NEW: SAVED PAGE STYLES --- */
+        /* Saved Page */
         .sketchy-success-icon {
             width: 100px; height: 100px;
             border: 5px dashed var(--ink-color);
@@ -333,14 +323,12 @@
             font-size: 4rem; color: var(--ink-color);
             font-family: 'Indie Flower', cursive;
         }
-        /* Animasi goyang pelan untuk ikon sukses */
         @keyframes wobbleSlow {
             0%, 100% { transform: rotate(-2deg) scale(1); }
             50% { transform: rotate(2deg) scale(1.05); }
         }
 
-
-        /* MEDIA QUERIES UNTUK LAYAR PENDEK */
+        
         @media (max-height: 700px) {
             .machine-top-deco { display: none; }
             .machine-cabinet { padding: 15px; }
@@ -351,7 +339,6 @@
             .big-red-button { width: 80px; height: 80px; font-size: 1.6rem; outline-width: 4px; }
             .coin-slot { width: 40px; height: 60px; font-size: 0.7rem; }
             .levina-plaque { display: none; } 
-            /* Adjust lock screen for small screens */
             .sketchy-robot { width: 60px; height: 40px; margin-bottom: 10px; }
             #screen-locked p { font-size: 0.9rem; margin-bottom: 5px; }
         }
@@ -443,17 +430,12 @@
             <div class="sketchy-success-icon">
                 <span>✔</span>
             </div>
-            
-            <h2 style="font-family: 'Indie Flower'; font-size: 2rem; margin-bottom: 10px;">Dah kesimpen Pin</h2>
-            
+            <h2 style="font-family: 'Indie Flower'; font-size: 2rem; margin-bottom: 10px;">Berhasil Disimpan!</h2>
             <p style="font-family: 'Patrick Hand'; font-size: 1.3rem; text-align: center; max-width: 80%;">
-                Dah HD tuh gausah diremini, disimpen baik2 yach, janlup dipost :3
+                Udah di-save HD nih! Jangan lupa di-post yak kalo bagus (kalo jelek simpen sendiri aja wkwk).
             </p>
-
             <div style="height: 30px;"></div>
-
             <button class="btn-sketchy" style="width: 80%;" onclick="backToPreview()">⬅ Balik ke Preview</button>
-            
             <div style="margin-top: 15px; font-size: 0.9rem; opacity: 0.7;">
                 Atau mau foto ulang? Klik 'Balik ke Preview' lalu 'Ulangi'.
             </div>
@@ -488,16 +470,13 @@
     <div id="flash"></div>
 
     <script>
-        // =========================================
-        // KONFIGURASI & STATE
-        // =========================================
+        // Config & State
         const CONFIG = { count: 4, timer: 3, width: 1200, height: 1800 };
         let state = { 
             stream: null, photos: [], photoConfigs: [], index: 0, template: 1,
             isLocked: true 
         };
         let editorState = { mode: 'adjust', selectedIndex: 0, swapSourceIndex: null };
-        
         const CORRECT_ANSWER = "23/11/2004"; 
 
         const LANDING_PHRASES = [
@@ -505,8 +484,8 @@
             "Jangan malu2 pwis",
             "B-bawa bunganya dong, mw liat",
             "Mesin ini khusus dibuat untuk Levina",
-            "Ayo bikin kenangan paling norak!",
-            "Pose paling gila nanti disimpen ya",
+            "Ayo lucu lucuannn",
+            "Ini kameranya ajaib kata Farell",
             "Udah siap belum? gece pencet START"
         ];
 
@@ -514,20 +493,16 @@
             "Siap Pose!", 
             "Gaya Bebas!", 
             "Senyum Pepsodent!",
-            "gausah disipit2in", 
+            "Gausah disipit2in", 
             "Tahan Napas...", 
             "Lirik Kanan Dikit",
             "Gaya Model Papan Atas!", 
             "Siap Ya!",
             "1, 2, 3, CHEESE!",
-            "Tunjukkan Gigi Keringmu!"
+            "Tunjukkan Gigi Keringmu Pon!"
         ];
 
-
-        // =========================================
-        // DOM ELEMENTS
-        // =========================================
-        // UPDATE: Tambahkan 'saved'
+        
         const pages = { 
             landing: document.getElementById('page-landing'), 
             camera: document.getElementById('page-camera'), 
@@ -554,15 +529,12 @@
         const unlockError = document.getElementById('unlock-error');
         const physicalStartBtn = document.getElementById('physical-start-btn');
 
-        // =========================================
-        // LOGIKA ROTASI TEKS LAYAR UTAMA
-        // =========================================
+        // Text Rotation Logic
         let landingTextInterval;
         let landingPhraseIndex = 0;
 
         function startLandingTextRotation() {
             if (landingTextInterval) clearInterval(landingTextInterval);
-
             landingTextInterval = setInterval(() => {
                 landingText.classList.add('fade-out');
                 setTimeout(() => {
@@ -577,10 +549,7 @@
              if (landingTextInterval) clearInterval(landingTextInterval);
         }
 
-
-        // =========================================
-        // NEW: LOCK SCREEN LOGIC
-        // =========================================
+        // Lock Screen Logic
         function updateLockUI() {
             if (state.isLocked) {
                 screenLocked.classList.remove('screen-hidden');
@@ -608,25 +577,18 @@
                 setTimeout(() => { birthdateInput.style.animation = ""; }, 300);
             }
         }
-        
         updateLockUI();
 
-
-        // =========================================
-        // NAVIGASI
-        // =========================================
+        // Navigation
         function switchPage(fromPage, toPage) {
             fromPage.classList.add('exit'); fromPage.classList.remove('active'); toPage.scrollTop = 0;
             setTimeout(() => { toPage.classList.add('active'); fromPage.classList.remove('exit'); }, 300);
         }
 
-        // =========================================
-        // FLOW KAMERA
-        // =========================================
+        // Camera Flow
         async function goToCamera() {
             if(state.isLocked) return;
             stopLandingTextRotation();
-
             try {
                 state.photos = []; state.photoConfigs = []; state.index = 0; miniGallery.innerHTML = ''; 
                 state.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1920 }, height: { ideal: 1080 } } });
@@ -674,12 +636,9 @@
             startLandingTextRotation();
         }
 
-
         function setTemplate(t) { state.template = t; document.querySelectorAll('.template-btn').forEach((b, i) => { if (i + 1 === t) b.classList.add('active'); else b.classList.remove('active'); }); generateResult(); }
 
-        // =========================================
-        // LOGIKA EDITOR LENGKAP
-        // =========================================
+        // Editor Logic
         function openEditor() { renderEditorGrid(); setEditMode('adjust'); selectPhotoForEdit(0); editorOverlay.classList.add('open'); }
         function closeEditor() { editorOverlay.classList.remove('open'); generateResult(); }
         function setEditMode(mode) {
@@ -719,9 +678,7 @@
             updatePhotoSettings(); 
         }
 
-        // =========================================
-        // RENDERING
-        // =========================================
+        // Rendering
         function generateResult() {
             finalCanvas.width = CONFIG.width; finalCanvas.height = CONFIG.height; const ctx = finalCanvas.getContext('2d');
             ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, CONFIG.width, CONFIG.height);
@@ -733,22 +690,20 @@
         }
         function updatePreview() { resultPreview.src = finalCanvas.toDataURL('image/jpeg', 0.9); }
 
-        // =========================================
-        // UTILITIES
-        // =========================================
+        
         function drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY) { if (arguments.length === 2) { x = y = 0; w = ctx.canvas.width; h = ctx.canvas.height; } offsetX = typeof offsetX === "number" ? offsetX : 0.5; offsetY = typeof offsetY === "number" ? offsetY : 0.5; if (offsetX < 0) offsetX = 0; if (offsetY < 0) offsetY = 0; if (offsetX > 1) offsetX = 1; if (offsetY > 1) offsetY = 1; var iw = img.width, ih = img.height, r = Math.min(w / iw, h / ih), nw = iw * r, nh = ih * r, cx, cy, cw, ch, ar = 1; if (nw < w) ar = w / nw; if (Math.abs(ar - 1) < 1e-14 && nh < h) ar = h / nh; nw *= ar; nh *= ar; cw = iw / (nw / w); ch = ih / (nh / h); cx = (iw - cw) * offsetX; cy = (ih - ch) * offsetY; if (cx < 0) cx = 0; if (cy < 0) cy = 0; if (cw > iw) cw = iw; if (ch > ih) ch = ih; ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h); }
         function strokeRect(ctx, x, y, w, h) { ctx.strokeStyle = "#111"; ctx.lineWidth = 8; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x-2, y-2); ctx.lineTo(x+w+5, y+3); ctx.lineTo(x+w-2, y+h+4); ctx.lineTo(x+3, y+h-2); ctx.lineTo(x-4, y+5); ctx.stroke(); }
 
-        // --- FUNGSI BARU: Handle Save HD dan Pindah Halaman ---
+        
         function handleSaveAndShowSuccess() {
             const link = document.createElement('a');
             link.download = 'Levina-Photobooth-' + Date.now() + '.jpg';
-            link.href = finalCanvas.toDataURL('image/jpeg', 1.0); // HD Quality
+            link.href = finalCanvas.toDataURL('image/jpeg', 1.0);
             link.click();
             switchPage(pages.editing, pages.saved);
         }
 
-        // --- FUNGSI BARU: Tombol Balik ke Preview ---
+        
         function backToPreview() {
             switchPage(pages.saved, pages.editing);
         }
