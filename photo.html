@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&family=Patrick+Hand&family=VT323&display=swap" rel="stylesheet">
 
     <style>
-        /* Design System */
+        /* --- Design System --- */
         :root {
             --paper-color: #ffffff; 
             --ink-color: #111111;
@@ -34,27 +34,29 @@
             background-position: -1px -1px;
             color: var(--ink-color);
             display: flex; justify-content: center; align-items: center;
-            height: 100vh; height: 100dvh;
+            /* Menggunakan min-height agar lebih fleksibel di mobile */
+            min-height: 100vh; min-height: 100dvh;
             overflow: hidden;
         }
 
         #app-container {
-            width: 95%; max-width: 480px;
-            height: 95dvh; max-height: 900px;
+            width: 100%; max-width: 480px;
+            /* Menggunakan min-height dan batas maks */
+            min-height: 95dvh; max-height: 900px;
             background: transparent;
             position: relative;
-            box-shadow: none; border: none; border-radius: 0;
             display: flex; flex-direction: column;
             overflow: hidden; 
+            padding: 10px; /* Sedikit padding agar tidak nempel tepi layar */
         }
 
-        /* Pages */
+        /* --- Pages --- */
         .page {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             padding: 20px; padding-top: 40px;
             display: flex; flex-direction: column;
             align-items: center; justify-content: flex-start;
-            overflow-y: auto; 
+            overflow-y: auto; /* Allow scrolling if content is too tall */
             background: var(--paper-color);
             transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s;
             opacity: 0; pointer-events: none;
@@ -64,10 +66,10 @@
         }
         .page.active { opacity: 1; pointer-events: auto; transform: translateY(0); z-index: 2; }
         .page.exit { transform: translateY(-120%) rotate(-5deg); opacity: 0; z-index: 3; }
-        .page-centered { justify-content: center; padding-top: 0 !important; padding-bottom: 40px; }
+        .page-centered { justify-content: flex-start; padding-top: 20px !important; padding-bottom: 20px; }
         #page-landing.page { background: transparent; border: none; padding: 0; overflow: hidden; }
 
-        /* Typography & Elements */
+        /* --- Typography & Elements --- */
         h1 { margin: 10px 0; font-size: 2rem; font-family: 'Indie Flower', cursive; line-height: 1; }
         h2 { margin: 10px 0; font-size: 1.5rem; }
         p { margin: 5px 0 15px 0; }
@@ -88,7 +90,7 @@
         .button-group { display: flex; width: 100%; gap: 10px; margin-top: 20px; margin-bottom: 20px; }
         .button-group button { flex: 1; }
 
-        /* Machine Styles */
+        /* --- Machine Styles --- */
         .machine-cabinet {
             width: 100%; height: 100%;
             background: linear-gradient(135deg, var(--machine-highlight) 0%, var(--machine-body) 50%, var(--machine-shadow) 100%);
@@ -131,7 +133,7 @@
         }
         .screen-content::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 3px); pointer-events: none; z-index: 5; }
         
-        /* Lock Screen */
+        /* --- Lock Screen --- */
         .screen-section {
             width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -178,7 +180,7 @@
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         .screen-content h1 { font-size: 1.8rem; margin: 5px 0; }
 
-        /* Text Rotation Styles */
+        /* --- Text Rotation Styles --- */
         #screen-unlocked p {
             transition: opacity 0.5s ease-in-out; 
             opacity: 1;
@@ -193,7 +195,6 @@
         .fade-out {
             opacity: 0 !important;
         }
-
 
         .control-panel {
             margin-top: 20px; width: 100%; max-width: 380px;
@@ -241,17 +242,35 @@
         .levina-plaque::before, .levina-plaque::after { content: '+'; position: absolute; top: 50%; transform: translateY(-50%); color: #444; font-family: sans-serif; font-weight: bold; }
         .levina-plaque::before { left: 6px; } .levina-plaque::after { right: 6px; }
 
-        /* Camera UI */
+        /* --- Camera UI (FIXED FOR MOBILE) --- */
         #camera-frame-wrapper {
-            position: relative; width: 100%; aspect-ratio: 4/3; padding: 10px;
-            background: #fff; border: 4px solid var(--ink-color);
-            box-shadow: 8px 8px 0 var(--ink-color); transform: rotate(-1deg); margin-top: 10px;
+            position: relative;
+            width: 90%; /* Lebar relatif agar ada jarak di HP */
+            max-width: 400px; /* Batas lebar di layar besar */
+            aspect-ratio: 4/3; /* PENTING: Memaksa rasio 4:3 */
+            background: #fff;
+            border: 4px solid var(--ink-color);
+            box-shadow: 8px 8px 0 var(--ink-color);
+            transform: rotate(-1deg);
+            margin: 10px auto; /* Center horizontal */
+            overflow: hidden; /* Potong video yang berlebih */
         }
-        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); border: 2px solid #000; }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* PENTING: Isi penuh frame 4:3 tanpa gepeng (akan di-crop jika perlu) */
+            transform: scaleX(-1); /* Mirror */
+            border: 2px solid #000;
+            display: block;
+        }
+
         #countdown-overlay {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             font-size: 8rem; font-family: 'Indie Flower'; color: var(--ink-color); text-shadow: 4px 4px 0 #fff; display: none;
+            z-index: 10;
         }
+
         #mini-gallery { display: flex; justify-content: center; height: 60px; width: 100%; margin-top: 20px; perspective: 500px; }
         .mini-photo {
             width: 50px; height: 40px; background: #eee; border: 2px solid #fff;
@@ -261,7 +280,7 @@
         }
         @keyframes tossIn { from { transform: translateY(100px); opacity: 0; } }
 
-        /* Preview & Editor */
+        /* --- Preview & Editor --- */
         #result-preview {
             width: 100%; max-width: 280px; height: auto; border: 4px solid #fff;
             box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin-top: 20px; margin-bottom: 25px; transform: rotate(1deg);
@@ -308,7 +327,7 @@
 
         .hidden { display: none; }
 
-        /* Saved Page */
+        /* --- Saved Page --- */
         .sketchy-success-icon {
             width: 100px; height: 100px;
             border: 5px dashed var(--ink-color);
@@ -328,7 +347,7 @@
             50% { transform: rotate(2deg) scale(1.05); }
         }
 
-        
+        /* --- Media Queries --- */
         @media (max-height: 700px) {
             .machine-top-deco { display: none; }
             .machine-cabinet { padding: 15px; }
@@ -341,6 +360,11 @@
             .levina-plaque { display: none; } 
             .sketchy-robot { width: 60px; height: 40px; margin-bottom: 10px; }
             #screen-locked p { font-size: 0.9rem; margin-bottom: 5px; }
+        }
+        
+        /* Tambahan untuk layar sangat sempit */
+        @media (max-width: 350px) {
+            #camera-frame-wrapper { width: 95%; }
         }
     </style>
 </head>
@@ -413,7 +437,7 @@
 
         <div id="page-editing" class="page">
             <canvas id="final-canvas" class="hidden"></canvas>
-            <button class="btn-sketchy" style="width: 100%; margin-bottom: 10px; background: #eee;" onclick="openEditor()"> Adjust Filter & Posisi</button>
+            <button class="btn-sketchy" style="width: 100%; margin-bottom: 10px; background: #eee;" onclick="openEditor()">🔧 Adjust Filter & Posisi</button>
             <img id="result-preview" src="" alt="Hasil">
             <div class="template-selector">
                 <div class="template-btn active" onclick="setTemplate(1)">GRID</div>
@@ -502,7 +526,7 @@
             "Tunjukkan Gigi Keringmu Pon!"
         ];
 
-        
+        // DOM Elements
         const pages = { 
             landing: document.getElementById('page-landing'), 
             camera: document.getElementById('page-camera'), 
