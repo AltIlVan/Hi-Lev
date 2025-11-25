@@ -2,459 +2,755 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lev Photobooth</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lev Photobooth - Levina Custom Edition</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&family=Patrick+Hand&family=VT323&display=swap" rel="stylesheet">
 
     <style>
-        /* --- DESIGN SYSTEM --- */
+        /* --- 1. DESIGN SYSTEM --- */
         :root {
-            --paper-color: #fdfbf7;
-            --ink-color: #2c2c2c;
+            --paper-color: #ffffff; 
+            --ink-color: #111111;
+            --machine-body: #333333;
+            --machine-highlight: #555555;
+            --machine-shadow: #000000;
+            --metal-silver: #aaaaaa;
+            --screen-glow: rgba(255, 255, 255, 0.15);
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             font-family: 'Patrick Hand', cursive;
-            background-color: #eee;
-            background-image: radial-gradient(#ddd 1px, transparent 1px);
-            background-size: 20px 20px;
+            background-color: #e0e0e0;
+            background-image: 
+                linear-gradient(#cccccc 1px, transparent 1px),
+                linear-gradient(90deg, #cccccc 1px, transparent 1px);
+            background-size: 30px 30px;
+            background-position: -1px -1px;
             color: var(--ink-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            /* Tambahan: Biar scroll bar default browser ga ganggu estetik */
-            overflow: hidden; 
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; height: 100dvh;
+            overflow: hidden;
         }
 
         #app-container {
-            /* REVISI 1: Memberikan ruang napas di Mobile */
-            width: 90%; /* Jangan 100%, kasih sisa 10% buat margin kiri kanan */
-            max-width: 450px; /* Sedikit lebih ramping biar enak di mata */
-            max-height: 90vh; /* Jangan menuhin tinggi layar banget */
-            
-            background: var(--paper-color);
+            width: 95%; max-width: 480px;
+            height: 95dvh; max-height: 900px;
+            background: transparent;
             position: relative;
-            padding: 15px; /* Padding dikurangi dikit biar muat */
-            
-            /* Border radius style */
-            border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-            box-shadow: 10px 10px 0px rgba(0,0,0,0.1);
-            border: 2px solid var(--ink-color);
-            
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            overflow-y: auto; /* Scrollable kalau konten kepanjangan */
-        }
-/* Tambahan Style untuk Ikon Kamera di Depan */
-        .landing-icon {
-            width: 150px; /* Atur ukuran kamera sesuai selera, misal 120px - 180px */
-            height: auto;
-            margin-bottom: 20px; /* Jarak antara kamera dan tulisan Judul */
-            
-            /* Opsional: Efek "melayang" biar interaktif */
-            animation: floatAnim 3s ease-in-out infinite;
+            box-shadow: none; border: none; border-radius: 0;
+            display: flex; flex-direction: column;
+            overflow: hidden; 
         }
 
-        /* Animasi melayang */
-        @keyframes floatAnim {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        /* --- PAGES SYSTEM --- */
+        .page {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            padding: 20px; padding-top: 40px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: flex-start;
+            overflow-y: auto; 
+            background: var(--paper-color);
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s;
+            opacity: 0; pointer-events: none;
+            transform: translateY(50px); z-index: 1;
+            border: 3px solid var(--ink-color);
+            border-radius: 2px 4px 2px 3px;
         }
-        h1 { font-size: 2rem; margin: 10px 0; }
-        h2 { font-size: 1.5rem; margin: 5px 0; }
+        .page.active { opacity: 1; pointer-events: auto; transform: translateY(0); z-index: 2; }
+        .page.exit { transform: translateY(-120%) rotate(-5deg); opacity: 0; z-index: 3; }
+        .page-centered { justify-content: center; padding-top: 0 !important; padding-bottom: 40px; }
+        #page-landing.page { background: transparent; border: none; padding: 0; overflow: hidden; }
+
+        /* --- TYPOGRAPHY & ELEMENTS --- */
+        h1 { margin: 10px 0; font-size: 2rem; font-family: 'Indie Flower', cursive; line-height: 1; }
+        h2 { margin: 10px 0; font-size: 1.5rem; }
+        p { margin: 5px 0 15px 0; }
 
         .btn-sketchy {
-            background: transparent;
-            font-family: 'Patrick Hand', cursive;
-            font-size: 1.2rem; /* Font tombol disesuaikan */
-            padding: 8px 25px;
-            margin: 10px;
-            cursor: pointer;
+            background: #fff; font-family: 'Patrick Hand', cursive; font-size: 1.1rem;
+            padding: 10px 10px; cursor: pointer; 
             border: 3px solid var(--ink-color);
             border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-            transition: transform 0.1s;
+            transition: all 0.2s; 
+            box-shadow: 4px 4px 0 var(--ink-color);
+            display: flex; justify-content: center; align-items: center; gap: 5px;
+            color: var(--ink-color);
         }
-        .btn-sketchy:hover { background: #ffecb3; transform: scale(1.05) rotate(-1deg); }
-        .btn-sketchy:active { transform: scale(0.95); }
+        .btn-sketchy:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--ink-color); }
+        .btn-sketchy:hover { background: var(--ink-color); color: #fff; }
+        .btn-secondary { background: #ddd; color: #333; border-color: #333; box-shadow: 3px 3px 0 #333; }
+        .button-group { display: flex; width: 100%; gap: 10px; margin-top: 20px; margin-bottom: 20px; }
+        .button-group button { flex: 1; }
 
-        .hidden { display: none !important; }
-
-        /* --- HALAMAN KAMERA --- */
-        #camera-container {
+        /* --- INDUSTRIAL MACHINE STYLES --- */
+        .machine-cabinet {
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, var(--machine-highlight) 0%, var(--machine-body) 50%, var(--machine-shadow) 100%);
+            border-right: 12px solid #1a1a1a; border-bottom: 12px solid #1a1a1a; border-left: 2px solid #555; border-top: 2px solid #555;
+            border-radius: 20px; padding: 20px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 15px 15px 40px rgba(0,0,0,0.5);
             position: relative;
-            width: 100%;
-            
-            /* REVISI 2: Ubah Rasio Kamera jadi LANDSCAPE (4:3) 
-               Agar sesuai dengan template Grid 500x375 */
-            aspect-ratio: 4 / 3; 
+            display: flex; flex-direction: column; align-items: center;
+            overflow: hidden; justify-content: space-between;
+        }
+        
+        .machine-top-deco {
+            display: flex; gap: 20px; margin-bottom: 15px; width: 100%; justify-content: center; align-items: center; flex-shrink: 0; 
+        }
+        .deco-lens {
+            width: 70px; height: 70px; background: #000; border-radius: 50%; border: 6px solid #333;
+            background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8) 2%, transparent 10%), radial-gradient(circle at 50% 50%, #000 50%, #222 70%, #555 100%);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .deco-flash {
+            width: 90px; height: 35px; background: #eee; border: 4px solid #111; border-radius: 2px;
+            background: repeating-linear-gradient(90deg, #fff, #fff 10px, #ddd 10px, #ddd 20px);
+            box-shadow: 0 0 20px rgba(255,255,255,0.5); animation: strobeFlash 1s infinite steps(2);
+        }
+        @keyframes strobeFlash { 0% { opacity: 1; } 50% { opacity: 0.7; } }
 
-            border: 4px solid var(--ink-color);
-            border-radius: 2% 98% 1% 99% / 98% 2% 98% 2%; 
-            overflow: hidden;
-            background: #000;
-            margin-bottom: 10px;
+        .screen-bezel {
+            width: 100%; max-width: 380px;
+            background: #222; padding: 20px; border-radius: 10px; border: 3px solid #111;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5); position: relative;
+            flex: 1; min-height: 220px; display: flex; align-items: center; justify-content: center; margin-bottom: auto; 
+        }
+        .screen-bezel::before, .screen-bezel::after { content: ''; position: absolute; width: 12px; height: 12px; background: #555; border-radius: 50%; border: 2px solid #111; top: 5px; }
+        .screen-bezel::before { left: 5px; } .screen-bezel::after { right: 5px; }
+
+        .screen-content {
+            background: var(--paper-color); width: 100%; height: 100%;
+            border: 6px solid #111; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 10px; box-shadow: inset 0 0 50px var(--screen-glow); position: relative; overflow: hidden;
+        }
+        .screen-content::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 3px); pointer-events: none; z-index: 5; }
+        
+        /* --- LOCK SCREEN STYLES --- */
+        .screen-section {
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.3s, transform 0.3s;
+            position: absolute; top:0; left:0; padding: 10px;
+        }
+        .screen-hidden {
+            opacity: 0; pointer-events: none; transform: scale(0.9);
         }
 
-        video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Memastikan video full memenuhi kotak */
-            transform: scaleX(-1);
+        /* Robot Sketchy Sederhana */
+        .sketchy-robot {
+            width: 80px; height: 60px;
+            border: 4px dashed var(--ink-color); border-radius: 10px;
+            position: relative; margin-bottom: 15px;
+            display: flex; justify-content: center; align-items: center;
+            animation: robotHover 2s ease-in-out infinite;
+        }
+        /* Mata Robot */
+        .sketchy-robot::before, .sketchy-robot::after {
+            content: ''; position: absolute; top: 15px;
+            width: 12px; height: 12px; background: var(--ink-color); border-radius: 50%;
+            animation: robotBlink 3s infinite;
+        }
+        .sketchy-robot::before { left: 18px; } .sketchy-robot::after { right: 18px; }
+        /* Mulut Robot */
+        .robot-mouth {
+            width: 30px; height: 8px; border: 3px solid var(--ink-color);
+            border-top: none; border-radius: 0 0 10px 10px; margin-top: 15px;
+        }
+        @keyframes robotHover { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        @keyframes robotBlink { 0%, 90%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+
+        /* Input Terminal Style */
+        .terminal-input {
+            background: #000; color: #0f0; font-family: 'VT323', monospace;
+            border: 3px solid var(--ink-color); padding: 5px 10px;
+            font-size: 1.2rem; width: 80%; text-align: center; margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .terminal-btn {
+            background: var(--ink-color); color: #fff; font-family: 'VT323', monospace;
+            border: none; padding: 5px 15px; font-size: 1.2rem; cursor: pointer;
+        }
+        .terminal-btn:active { transform: scale(0.95); }
+
+        .landing-icon { width: 100px; animation: float 3s ease-in-out infinite; }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .screen-content h1 { font-size: 1.8rem; margin: 5px 0; }
+
+        /* --- GAYA UNTUK ROTASI TEKS --- */
+        /* Teks pada layar unlocked */
+        #screen-unlocked p {
+            transition: opacity 0.5s ease-in-out; /* Transisi halus */
+            opacity: 1;
+            min-height: 1.2em;
+            display: flex; align-items: center;
+            text-align: center;
+        }
+        /* Teks pada judul kamera */
+        #page-camera h2 {
+             transition: opacity 0.3s ease-in-out;
+             opacity: 1;
+        }
+        /* Class untuk menyembunyikan teks saat transisi */
+        .fade-out {
+            opacity: 0 !important;
         }
 
-        #countdown-overlay {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 6rem;
-            font-family: 'Indie Flower', cursive;
-            color: white;
-            text-shadow: 4px 4px 0 #000;
+
+        .control-panel {
+            margin-top: 20px; width: 100%; max-width: 380px;
+            display: flex; justify-content: space-around; align-items: center;
+            padding: 15px; background: linear-gradient(0deg, #999, #ccc);
+            border-radius: 5px; border: 4px solid #222;
+            box-shadow: inset 0 5px 10px rgba(255,255,255,0.5), 0 10px 20px rgba(0,0,0,0.3);
+            flex-shrink: 0; 
+        }
+        .coin-slot {
+            width: 50px; height: 70px; background: #444; border: 3px solid #111;
+            border-radius: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-family: 'VT323', monospace; color: #fff; font-size: 0.8rem; text-align: center;
+            text-shadow: 0 0 5px rgba(255,255,255,0.5);
+        }
+        .coin-slot::after { content: ''; width: 10px; height: 30px; background: #111; margin-top: 8px; border: 1px solid #666; }
+        
+        .big-red-button {
+            width: 100px; height: 100px;
+            background: radial-gradient(circle at 30% 30%, #ff4444, #990000);
+            border: 6px solid #222; outline: 6px solid var(--metal-silver);
+            border-radius: 50%; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #fff; font-family: 'VT323', monospace; font-size: 2rem; line-height: 1;
+            text-shadow: 0 2px 5px #000; transition: all 0.1s;
+        }
+        .big-red-button:active { transform: translateY(8px); box-shadow: 0 5px 10px rgba(0,0,0,0.5); background: radial-gradient(circle at 50% 50%, #770000, #330000); }
+        .big-red-button span { font-size: 0.9rem; font-family: 'Patrick Hand'; opacity: 0.7; margin-top: 3px; }
+        
+        /* Style untuk tombol fisik saat disable (terkunci) */
+        .btn-disabled {
+            filter: grayscale(100%) brightness(0.7);
             pointer-events: none;
-            display: none;
+            transform: translateY(5px) !important; /* Efek tenggelam permanen */
+            box-shadow: 0 5px 10px rgba(0,0,0,0.5) !important;
         }
 
-        #flash {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: white; opacity: 0; pointer-events: none;
+        .levina-plaque {
+            margin-top: 15px; padding: 8px 20px;
+            background: linear-gradient(45deg, #b0b0b0, #e0e0e0, #b0b0b0);
+            border: 3px solid #111; border-radius: 4px;
+            box-shadow: inset 0 2px 5px rgba(255,255,255,0.8), 0 5px 10px rgba(0,0,0,0.3);
+            font-family: 'VT323', monospace; color: #111; text-transform: uppercase; letter-spacing: 1px; font-size: 1rem; position: relative; text-shadow: 0 1px 0 rgba(255,255,255,0.5); flex-shrink: 0; 
         }
-        .flash-anim { animation: flashEffect 0.2s ease-out; }
+        .levina-plaque::before, .levina-plaque::after { content: '+'; position: absolute; top: 50%; transform: translateY(-50%); color: #444; font-family: sans-serif; font-weight: bold; }
+        .levina-plaque::before { left: 6px; } .levina-plaque::after { right: 6px; }
+
+        /* Camera UI */
+        #camera-frame-wrapper {
+            position: relative; width: 100%; aspect-ratio: 4/3; padding: 10px;
+            background: #fff; border: 4px solid var(--ink-color);
+            box-shadow: 8px 8px 0 var(--ink-color); transform: rotate(-1deg); margin-top: 10px;
+        }
+        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); border: 2px solid #000; }
+        #countdown-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 8rem; font-family: 'Indie Flower'; color: var(--ink-color); text-shadow: 4px 4px 0 #fff; display: none;
+        }
+        #mini-gallery { display: flex; justify-content: center; height: 60px; width: 100%; margin-top: 20px; perspective: 500px; }
+        .mini-photo {
+            width: 50px; height: 40px; background: #eee; border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin: 0 -15px; 
+            transform: rotate(var(--r)); transition: transform 0.3s;
+            animation: tossIn 0.5s ease-out backwards; 
+        }
+        @keyframes tossIn { from { transform: translateY(100px); opacity: 0; } }
+
+        /* Result Preview */
+        #result-preview {
+            width: 100%; max-width: 280px; height: auto; border: 4px solid #fff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin-top: 20px; margin-bottom: 25px; transform: rotate(1deg);
+        }
+
+        /* Editing UI */
+        .template-selector { display: flex; gap: 15px; margin-bottom: 10px; }
+        .template-btn {
+            width: 50px; height: 70px; border: 3px solid #ccc; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 0.7rem;
+            transition: 0.2s; border-radius: 4px; background: #fff; color: var(--ink-color);
+        }
+        .template-btn.active { border-color: var(--ink-color); background: var(--ink-color); color: #fff; transform: scale(1.1); box-shadow: 3px 3px 0 #999; }
+
+        /* Editor Overlay */
+        #editor-overlay {
+            position: absolute; top: 100%; left: 0; width: 100%; height: 100%;
+            background: var(--paper-color); z-index: 10;
+            display: flex; flex-direction: column; padding: 20px;
+            transition: top 0.4s ease-in-out; overflow-y: auto;
+             border: 3px solid var(--ink-color); border-radius: 2px 4px 2px 3px;
+        }
+        #editor-overlay.open { top: 0; }
+        .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; width: 100%; }
+        .editor-thumb {
+            width: 100%; aspect-ratio: 4/3; background: #ddd; border: 4px solid transparent; cursor: pointer;
+            position: relative; overflow: hidden; transition: transform 0.2s;
+        }
+        .editor-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .editor-thumb.selected { border-color: var(--ink-color); transform: scale(1.05); z-index: 2; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .editor-thumb.swap-target { border-color: #999; border-style: dashed; }
+        .thumb-number { position: absolute; top: 0; left: 0; background: var(--ink-color); color: #fff; width: 25px; height: 25px; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; font-family: 'VT323';}
+        
+        .editor-controls { width: 100%; background: #eee; padding: 15px; border-radius: 5px; border: 3px solid var(--ink-color); }
+        .control-row { display: flex; align-items: center; margin-bottom: 8px; justify-content: space-between; }
+        .control-row label { font-size: 0.8rem; width: 75px; font-weight: bold; }
+        input[type=range] { flex: 1; cursor: pointer; accent-color: var(--ink-color); }
+        
+        .toggle-btn { background: #fff; border: 3px solid var(--ink-color); padding: 8px 15px; cursor: pointer; font-family: inherit; font-weight: bold; }
+        .toggle-btn.active { background: var(--ink-color); color: #fff; }
+        .mode-switch { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+
+        #flash { position: fixed; top:0; left:0; width:100vw; height:100vh; background:#fff; opacity:0; pointer-events:none; z-index:99; }
+        .flash-anim { animation: flashEffect 0.15s ease-out; }
         @keyframes flashEffect { 0% { opacity: 1; } 100% { opacity: 0; } }
 
-        /* --- HALAMAN EDITING --- */
-        .template-selector {
-            display: flex; justify-content: center; gap: 10px; margin: 10px 0;
+        .hidden { display: none; }
+
+        /* --- NEW: SAVED PAGE STYLES --- */
+        .sketchy-success-icon {
+            width: 100px; height: 100px;
+            border: 5px dashed var(--ink-color);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 20px;
+            animation: wobbleSlow 2s infinite ease-in-out;
+            background: #fff;
+            transform: rotate(-2deg);
         }
-        .template-btn {
-            width: 50px; height: 70px;
-            border: 2px solid var(--ink-color);
-            background: #fff; cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 0.7rem;
-            border-radius: 4px;
+        .sketchy-success-icon span {
+            font-size: 4rem; color: var(--ink-color);
+            font-family: 'Indie Flower', cursive;
         }
-        .template-btn.active {
-            background: var(--ink-color); color: white;
+        /* Animasi goyang pelan untuk ikon sukses */
+        @keyframes wobbleSlow {
+            0%, 100% { transform: rotate(-2deg) scale(1); }
+            50% { transform: rotate(2deg) scale(1.05); }
         }
 
-        #result-preview {
-            width: 100%;
-            max-width: 280px; /* Preview jangan kegedean */
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
-            margin-bottom: 15px;
-            border: 2px solid #ddd;
+
+        /* MEDIA QUERIES UNTUK LAYAR PENDEK */
+        @media (max-height: 700px) {
+            .machine-top-deco { display: none; }
+            .machine-cabinet { padding: 15px; }
+            .screen-bezel { padding: 15px; min-height: 150px; margin-top: 10px; }
+            .landing-icon { width: 60px; }
+            .screen-content h1 { font-size: 1.5rem; margin: 2px 0; }
+            .control-panel { padding: 10px; margin-top: 15px; }
+            .big-red-button { width: 80px; height: 80px; font-size: 1.6rem; outline-width: 4px; }
+            .coin-slot { width: 40px; height: 60px; font-size: 0.7rem; }
+            .levina-plaque { display: none; } 
+            /* Adjust lock screen for small screens */
+            .sketchy-robot { width: 60px; height: 40px; margin-bottom: 10px; }
+            #screen-locked p { font-size: 0.9rem; margin-bottom: 5px; }
         }
     </style>
 </head>
 <body>
 
     <div id="app-container">
-        <section id="landing-page">
-            <img src="assets/camera.png" alt="Ikon Kamera" class="landing-icon">
-            
-            <h1>Photobooth buat kamuh</h1>
-            <p>Ayo pin kamu aku foto hehe</p>
-            <button class="btn-sketchy" onclick="startExperience()">Buka Kamera</button>
-        </section>
+        
+        <div id="page-landing" class="page active">
+            <div class="machine-cabinet">
+                
+                <div class="machine-top-deco">
+                    <div class="deco-lens"></div>
+                    <div class="deco-flash"></div>
+                </div>
 
-        <section id="camera-page" class="hidden">
-            <h2>Pose <span id="photo-status">1/4</span></h2>
-            <div id="camera-container">
+                <div class="screen-bezel">
+                    <div class="screen-content">
+                        
+                        <div id="screen-locked" class="screen-section">
+                            <div class="sketchy-robot">
+                                <div class="robot-mouth"></div>
+                            </div>
+                            <p style="font-family: 'VT323'; font-size: 1.1rem; text-align: center;">SYSTEM LOCKED.<br>VERIFY IDENTITY.</p>
+                            <p style="font-size: 0.9rem; margin-bottom: 5px;">Kapan ulang tahun Levina?</p>
+                            <input type="text" id="birthdate-input" class="terminal-input" placeholder="DD/MM/YYYY">
+                            <button class="terminal-btn" onclick="checkUnlock()">UNLOCK >></button>
+                            <p id="unlock-error" style="color: red; font-size: 0.8rem; display: none; margin-top: 5px; font-family: 'VT323';">ACCESS DENIED.</p>
+                        </div>
+
+                        <div id="screen-unlocked" class="screen-section screen-hidden">
+                            <img src="assets/camera.png" alt="Camera Doodle" class="landing-icon">
+                            <h1>Lev Photobooth</h1>
+                            <p>Siap2 mandi ya, mw difoto soalnya</p>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="control-panel">
+                    <div class="coin-slot">INSERT<br>TOKEN</div>
+                    <button id="physical-start-btn" class="big-red-button btn-disabled" onclick="goToCamera()">
+                        START
+                        <span>(Tekan!)</span>
+                    </button>
+                    <div style="font-family:'VT323'; font-size: 1.2rem; color: #222; text-align:center;">READY<br>TO GO</div>
+                </div>
+
+                <div class="levina-plaque">
+                    CUSTOM BUILT FOR: LEVINA
+                </div>
+
+            </div>
+        </div>
+
+        <div id="page-camera" class="page page-centered">
+            <h2 style="font-size:1.2rem; margin:0; transition: opacity 0.3s;">Siap Pose!</h2>
+            <div id="camera-frame-wrapper">
                 <video id="video" autoplay playsinline></video>
-                <div id="countdown-overlay"></div>
-                <div id="flash"></div>
+                <div id="countdown-overlay">3</div>
             </div>
-            <p style="margin-top:10px; font-size: 0.9rem; opacity: 0.7;">Otomatis jepret 4x...</p>
-        </section>
+            <div id="mini-gallery"></div>
+            <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 5px; font-weight: bold;">AUTO-CAPTURE ENGAGED...</p>
+        </div>
 
-        <section id="editing-page" class="hidden">
-            <canvas id="final-canvas" class="hidden"></canvas> 
-            
-            <img id="result-preview" src="" alt="Menunggu hasil...">
+        <div id="page-processing" class="page page-centered">
+            <div style="font-size: 3rem; animation: wobble 1s infinite;">⚙️</div>
+            <h2>Memproses wajah imoets mu...</h2>
+            <p>Mesin sedang mencetak...</p>
+        </div>
 
+        <div id="page-editing" class="page">
+            <canvas id="final-canvas" class="hidden"></canvas>
+            <button class="btn-sketchy" style="width: 100%; margin-bottom: 10px; background: #eee;" onclick="openEditor()">🔧 Adjust Filter & Posisi</button>
+            <img id="result-preview" src="" alt="Hasil">
             <div class="template-selector">
-                <div class="template-btn active" onclick="setTemplate(1)">Grid</div>
-                <div class="template-btn" onclick="setTemplate(2)">Strip</div>
+                <div class="template-btn active" onclick="setTemplate(1)">GRID</div>
+                <div class="template-btn" onclick="setTemplate(2)">STRIP</div>
+            </div>
+            <div class="button-group">
+                <button class="btn-sketchy btn-secondary" onclick="confirmRetry()">↺ Ulangi (Reset)</button>
+                <button class="btn-sketchy" onclick="handleSaveAndShowSuccess()">⬇ Cetak HD & Selesai</button>
+            </div>
+            <div style="height: 50px;"></div>
+        </div>
+
+        <div id="page-saved" class="page page-centered">
+            <div class="sketchy-success-icon">
+                <span>✔</span>
+            </div>
+            
+            <h2 style="font-family: 'Indie Flower'; font-size: 2rem; margin-bottom: 10px;">Dah kesimpen Pin</h2>
+            
+            <p style="font-family: 'Patrick Hand'; font-size: 1.3rem; text-align: center; max-width: 80%;">
+                Dah HD tuh gausah diremini, disimpen baik2 yach, janlup dipost :3
+            </p>
+
+            <div style="height: 30px;"></div>
+
+            <button class="btn-sketchy" style="width: 80%;" onclick="backToPreview()">⬅ Balik ke Preview</button>
+            
+            <div style="margin-top: 15px; font-size: 0.9rem; opacity: 0.7;">
+                Atau mau foto ulang? Klik 'Balik ke Preview' lalu 'Ulangi'.
+            </div>
+        </div>
+
+        <div id="editor-overlay">
+            <h2 style="margin-top:0;">Panel Editing</h2>
+            <div class="mode-switch">
+                <button id="btn-mode-adjust" class="toggle-btn active" onclick="setEditMode('adjust')">Adjust</button>
+                <button id="btn-mode-swap" class="toggle-btn" onclick="setEditMode('swap')">Swap</button>
+            </div>
+            <p id="editor-instruction" style="font-size: 0.8rem; text-align: center; font-family: 'VT323';">Pilih frame untuk diedit.</p>
+            <div class="editor-grid" id="editor-grid"></div>
+            
+            <div id="adjust-panel" class="editor-controls">
+                <div class="control-row"><label>Brightness</label><input type="range" id="sl-brightness" min="50" max="150" value="100" oninput="updatePhotoSettings()"></div>
+                <div class="control-row"><label>Contrast</label><input type="range" id="sl-contrast" min="50" max="150" value="100" oninput="updatePhotoSettings()"></div>
+                <div class="control-row"><label>Saturasi</label><input type="range" id="sl-saturation" min="0" max="200" value="100" oninput="updatePhotoSettings()"></div>
+                <div class="control-row"><label>Rona (Hue)</label><input type="range" id="sl-hue" min="0" max="360" value="0" oninput="updatePhotoSettings()"></div>
+                <div class="control-row"><label>Sepia</label><input type="range" id="sl-sepia" min="0" max="100" value="0" oninput="updatePhotoSettings()"></div>
+                
+                <div class="control-row" style="justify-content: center; margin-top: 15px;">
+                    <button class="toggle-btn" id="btn-bnw" onclick="toggleBnW()">⚫⚪ Mode B&W</button>
+                </div>
             </div>
 
-            <button class="btn-sketchy" onclick="downloadPhoto()">Simpan (HD)</button>
-            <br>
-            <button style="background:none; border:none; text-decoration:underline; cursor:pointer; font-family:inherit; color: #888;" onclick="location.reload()">Ulangi</button>
-        </section>
+            <button class="btn-sketchy" style="margin-top: 20px;" onclick="closeEditor()">Dah Cakep, slese</button>
+            <div style="height: 50px;"></div>
+        </div>
+
     </div>
+    <div id="flash"></div>
 
     <script>
-        // --- CONFIGURATION ---
-        const PHOTO_COUNT = 4;
-        const COUNTDOWN_SECONDS = 3;
-        const OUTPUT_WIDTH = 1200; 
-        const OUTPUT_HEIGHT = 1800; // Rasio 2:3
+        // =========================================
+        // KONFIGURASI & STATE
+        // =========================================
+        const CONFIG = { count: 4, timer: 3, width: 1200, height: 1800 };
+        let state = { 
+            stream: null, photos: [], photoConfigs: [], index: 0, template: 1,
+            isLocked: true 
+        };
+        let editorState = { mode: 'adjust', selectedIndex: 0, swapSourceIndex: null };
+        
+        const CORRECT_ANSWER = "23/11/2004"; 
 
-        // --- STATE ---
-        let stream = null;
-        let photos = []; 
-        let currentPhotoIndex = 0;
-        let selectedTemplate = 1;
+        const LANDING_PHRASES = [
+            "Siap2 mandi ya, mw difoto soalnya",
+            "Jangan malu2 pwis",
+            "B-bawa bunganya dong, mw liat",
+            "Mesin ini khusus dibuat untuk Levina",
+            "Ayo bikin kenangan paling norak!",
+            "Pose paling gila nanti disimpen ya",
+            "Udah siap belum? gece pencet START"
+        ];
 
-        // --- DOM ---
-        const landingPage = document.getElementById('landing-page');
-        const cameraPage = document.getElementById('camera-page');
-        const editingPage = document.getElementById('editing-page');
-        const video = document.getElementById('video');
-        const countdownEl = document.getElementById('countdown-overlay');
-        const flashEl = document.getElementById('flash');
-        const statusEl = document.getElementById('photo-status');
-        const finalCanvas = document.getElementById('final-canvas');
-        const resultPreview = document.getElementById('result-preview');
+        const CAMERA_PHRASES = [
+            "Siap Pose!", 
+            "Gaya Bebas!", 
+            "Senyum Pepsodent!",
+            "gausah disipit2in", 
+            "Tahan Napas...", 
+            "Lirik Kanan Dikit",
+            "Gaya Model Papan Atas!", 
+            "Siap Ya!",
+            "1, 2, 3, CHEESE!",
+            "Tunjukkan Gigi Keringmu!"
+        ];
 
-        // --- FUNGSI UTAMA ---
 
-        async function startExperience() {
-            try {
-                // Minta resolusi tinggi
-                stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: "user", width: { ideal: 1920 }, height: { ideal: 1080 } } 
-                });
-                video.srcObject = stream;
-                landingPage.classList.add('hidden');
-                cameraPage.classList.remove('hidden');
-                setTimeout(runPhotoSequence, 1000);
-            } catch (err) {
-                alert("Gagal akses kamera: " + err);
-            }
+        // =========================================
+        // DOM ELEMENTS
+        // =========================================
+        // UPDATE: Tambahkan 'saved'
+        const pages = { 
+            landing: document.getElementById('page-landing'), 
+            camera: document.getElementById('page-camera'), 
+            processing: document.getElementById('page-processing'), 
+            editing: document.getElementById('page-editing'),
+            saved: document.getElementById('page-saved') 
+        };
+
+        const video = document.getElementById('video'); const countdownEl = document.getElementById('countdown-overlay');
+        const miniGallery = document.getElementById('mini-gallery'); const finalCanvas = document.getElementById('final-canvas');
+        const resultPreview = document.getElementById('result-preview'); const flashEl = document.getElementById('flash');
+        const editorOverlay = document.getElementById('editor-overlay'); const editorGrid = document.getElementById('editor-grid');
+        const adjustPanel = document.getElementById('adjust-panel'); const editorInstruction = document.getElementById('editor-instruction');
+        const slBrightness = document.getElementById('sl-brightness'); const slContrast = document.getElementById('sl-contrast');
+        const slSaturation = document.getElementById('sl-saturation'); const slHue = document.getElementById('sl-hue');
+        const slSepia = document.getElementById('sl-sepia'); const btnBnW = document.getElementById('btn-bnw');
+        
+        const screenLocked = document.getElementById('screen-locked');
+        const screenUnlocked = document.getElementById('screen-unlocked');
+        const landingText = document.querySelector('#screen-unlocked p');
+        const cameraTitle = document.querySelector('#page-camera h2');
+
+        const birthdateInput = document.getElementById('birthdate-input');
+        const unlockError = document.getElementById('unlock-error');
+        const physicalStartBtn = document.getElementById('physical-start-btn');
+
+        // =========================================
+        // LOGIKA ROTASI TEKS LAYAR UTAMA
+        // =========================================
+        let landingTextInterval;
+        let landingPhraseIndex = 0;
+
+        function startLandingTextRotation() {
+            if (landingTextInterval) clearInterval(landingTextInterval);
+
+            landingTextInterval = setInterval(() => {
+                landingText.classList.add('fade-out');
+                setTimeout(() => {
+                    landingPhraseIndex = (landingPhraseIndex + 1) % LANDING_PHRASES.length;
+                    landingText.innerText = LANDING_PHRASES[landingPhraseIndex];
+                    landingText.classList.remove('fade-out');
+                }, 500); 
+            }, 2500); 
         }
 
-        function runPhotoSequence() {
-            if (currentPhotoIndex >= PHOTO_COUNT) {
-                finishCapture();
-                return;
-            }
-            statusEl.innerText = `${currentPhotoIndex + 1}/${PHOTO_COUNT}`;
-            let count = COUNTDOWN_SECONDS;
-            countdownEl.innerText = count;
-            countdownEl.style.display = 'block';
-
-            const timer = setInterval(() => {
-                count--;
-                if (count > 0) {
-                    countdownEl.innerText = count;
-                } else {
-                    clearInterval(timer);
-                    countdownEl.style.display = 'none';
-                    snapPhoto();
-                }
-            }, 1000);
+        function stopLandingTextRotation() {
+             if (landingTextInterval) clearInterval(landingTextInterval);
         }
 
-        function snapPhoto() {
-            flashEl.classList.add('flash-anim');
-            setTimeout(() => flashEl.classList.remove('flash-anim'), 500);
 
-            // Ambil resolusi asli video untuk kualitas maksimal
-            const vWidth = video.videoWidth;
-            const vHeight = video.videoHeight;
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = vWidth;
-            tempCanvas.height = vHeight;
-            const ctx = tempCanvas.getContext('2d');
-            
-            // Mirror
-            ctx.translate(vWidth, 0);
-            ctx.scale(-1, 1);
-            ctx.drawImage(video, 0, 0);
-
-            photos.push(tempCanvas);
-            currentPhotoIndex++;
-            setTimeout(runPhotoSequence, 1500);
-        }
-
-        function finishCapture() {
-            if(stream) stream.getTracks().forEach(track => track.stop());
-            cameraPage.classList.add('hidden');
-            editingPage.classList.remove('hidden');
-            generateResult();
-        }
-
-        function setTemplate(type) {
-            selectedTemplate = type;
-            document.querySelectorAll('.template-btn').forEach((btn, idx) => {
-                if (idx + 1 === type) btn.classList.add('active');
-                else btn.classList.remove('active');
-            });
-            generateResult();
-        }
-
-        // --- CORE LOGIC: GENERATE FINAL IMAGE ---
-        function generateResult() {
-            finalCanvas.width = OUTPUT_WIDTH;
-            finalCanvas.height = OUTPUT_HEIGHT;
-            const ctx = finalCanvas.getContext('2d');
-
-            // 1. Background Kertas
-            ctx.fillStyle = "#fdfbf7"; 
-            ctx.fillRect(0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
-
-            let templateSrc = "";
-            let positions = [];
-            let photoW, photoH;
-
-            // 2. Kalkulasi Posisi Berdasarkan Tipe
-            if (selectedTemplate === 1) {
-                // === GRID MODE (CENTERED) ===
-                templateSrc = "assets/template_grid.png"; 
-                
-                const marginX = 80;
-                const gap = 40;
-                
-                // Lebar & Tinggi Foto
-                photoW = (OUTPUT_WIDTH - (marginX * 2) - gap) / 2;
-                photoH = photoW * 0.75; // Rasio 4:3
-
-                // Hitung total tinggi grid untuk centering
-                const totalGridHeight = (photoH * 2) + gap;
-                
-                // Rumus Center Vertikal
-                // (TinggiCanvas - TinggiKonten) / 2
-                let topOffset = (OUTPUT_HEIGHT - totalGridHeight) / 2;
-                
-                // Sedikit adjustment biar visualnya enak (biasanya grid agak ke bawah dikit)
-                topOffset = topOffset + 50; 
-
-                positions = [
-                    { x: marginX, y: topOffset },
-                    { x: marginX + photoW + gap, y: topOffset },
-                    { x: marginX, y: topOffset + photoH + gap },
-                    { x: marginX + photoW + gap, y: topOffset + photoH + gap }
-                ];
-
-                // Draw Text (Opsional, akan tertimpa template PNG jika ada backgroundnya)
-                ctx.font = "bold 80px 'Indie Flower'";
-                ctx.fillStyle = "#2c2c2c";
-                ctx.textAlign = "center";
-                ctx.fillText("My Sketchy Day", OUTPUT_WIDTH/2, topOffset - 100);
-
+        // =========================================
+        // NEW: LOCK SCREEN LOGIC
+        // =========================================
+        function updateLockUI() {
+            if (state.isLocked) {
+                screenLocked.classList.remove('screen-hidden');
+                screenUnlocked.classList.add('screen-hidden');
+                physicalStartBtn.classList.add('btn-disabled');
+                stopLandingTextRotation(); 
             } else {
-                // === STRIP MODE ===
-                templateSrc = "assets/template_strip.png"; 
-                
-                const marginY = 150;
-                const gap = 30;
-                const totalAvailableHeight = OUTPUT_HEIGHT - (marginY * 2);
-                
-                photoH = (totalAvailableHeight - (3 * gap)) / 4; 
-                photoW = photoH * (4/3); 
-                
-                const startX = (OUTPUT_WIDTH - photoW) / 2;
-
-                for (let i = 0; i < 4; i++) {
-                    positions.push({
-                        x: startX,
-                        y: marginY + (i * (photoH + gap))
-                    });
-                }
-
-                ctx.font = "60px 'Patrick Hand'";
-                ctx.fillStyle = "#2c2c2c";
-                ctx.textAlign = "center";
-                ctx.fillText("Created with Love", OUTPUT_WIDTH/2, OUTPUT_HEIGHT - 60);
+                screenLocked.classList.add('screen-hidden');
+                screenUnlocked.classList.remove('screen-hidden');
+                physicalStartBtn.classList.remove('btn-disabled');
+                startLandingTextRotation(); 
             }
+        }
 
-            // 3. Draw Photos (Layer Bawah)
-            photos.forEach((img, i) => {
-                if (positions[i]) {
-                    // Pakai drawImageProp biar tidak gepeng
-                    drawImageProp(ctx, img, positions[i].x, positions[i].y, photoW, photoH);
-                    
-                    // Efek garis coretan di sekitar foto (tetap ada biar artistik)
-                    strokeSketchyRect(ctx, positions[i].x, positions[i].y, photoW, photoH);
-                }
+        function checkUnlock() {
+            const userAnswer = birthdateInput.value.trim(); 
+            if (userAnswer === CORRECT_ANSWER) {
+                state.isLocked = false;
+                unlockError.style.display = 'none';
+                updateLockUI();
+            } else {
+                unlockError.style.display = 'block';
+                birthdateInput.value = ''; 
+                birthdateInput.style.animation = "wobble 0.3s";
+                setTimeout(() => { birthdateInput.style.animation = ""; }, 300);
+            }
+        }
+        
+        updateLockUI();
+
+
+        // =========================================
+        // NAVIGASI
+        // =========================================
+        function switchPage(fromPage, toPage) {
+            fromPage.classList.add('exit'); fromPage.classList.remove('active'); toPage.scrollTop = 0;
+            setTimeout(() => { toPage.classList.add('active'); fromPage.classList.remove('exit'); }, 300);
+        }
+
+        // =========================================
+        // FLOW KAMERA
+        // =========================================
+        async function goToCamera() {
+            if(state.isLocked) return;
+            stopLandingTextRotation();
+
+            try {
+                state.photos = []; state.photoConfigs = []; state.index = 0; miniGallery.innerHTML = ''; 
+                state.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1920 }, height: { ideal: 1080 } } });
+                video.srcObject = state.stream; switchPage(pages.landing, pages.camera); setTimeout(runSequence, 1500);
+            } catch (err) { alert("Gagal akses sistem kamera: " + err); }
+        }
+
+        function runSequence() {
+            if (state.index >= CONFIG.count) { endCapture(); return; }
+            cameraTitle.classList.add('fade-out');
+            setTimeout(() => {
+                const randomPhrase = CAMERA_PHRASES[Math.floor(Math.random() * CAMERA_PHRASES.length)];
+                cameraTitle.innerText = randomPhrase;
+                cameraTitle.classList.remove('fade-out');
+                let count = CONFIG.timer; countdownEl.style.display = 'block'; countdownEl.innerText = count;
+                const timerInt = setInterval(() => { count--; if (count > 0) { countdownEl.innerText = count; } else { clearInterval(timerInt); countdownEl.style.display = 'none'; snap(); } }, 1000);
+            }, 300); 
+        }
+
+        function snap() {
+            flashEl.classList.add('flash-anim'); setTimeout(() => flashEl.classList.remove('flash-anim'), 500);
+            const vW = video.videoWidth; const vH = video.videoHeight;
+            const canvas = document.createElement('canvas'); canvas.width = vW; canvas.height = vH;
+            const ctx = canvas.getContext('2d'); ctx.translate(vW, 0); ctx.scale(-1, 1); ctx.drawImage(video, 0, 0);
+            state.photos.push(canvas);
+            state.photoConfigs.push({ brightness: 100, contrast: 100, grayscale: 0, saturation: 100, hue: 0, sepia: 0 });
+            addMiniPolaroid(canvas); state.index++; setTimeout(runSequence, 1500);
+        }
+        function addMiniPolaroid(c) { const img = document.createElement('img'); img.src = c.toDataURL('image/jpeg', 0.5); img.classList.add('mini-photo'); img.style.setProperty('--r', (Math.floor(Math.random() * 20) - 10) + 'deg'); miniGallery.appendChild(img); }
+        function endCapture() { if(state.stream) state.stream.getTracks().forEach(t => t.stop()); switchPage(pages.camera, pages.processing); setTimeout(() => { generateResult(); switchPage(pages.processing, pages.editing); }, 2500); }
+        
+        function confirmRetry() {
+            if (confirm("Ulangi sesi foto? Foto saat ini akan dihapus.")) {
+                resetSession(); 
+            }
+        }
+
+        function resetSession() {
+            state.photos = [];
+            state.photoConfigs = [];
+            state.index = 0;
+            miniGallery.innerHTML = ''; 
+            editorOverlay.classList.remove('open');
+            switchPage(pages.editing, pages.landing);
+            startLandingTextRotation();
+        }
+
+
+        function setTemplate(t) { state.template = t; document.querySelectorAll('.template-btn').forEach((b, i) => { if (i + 1 === t) b.classList.add('active'); else b.classList.remove('active'); }); generateResult(); }
+
+        // =========================================
+        // LOGIKA EDITOR LENGKAP
+        // =========================================
+        function openEditor() { renderEditorGrid(); setEditMode('adjust'); selectPhotoForEdit(0); editorOverlay.classList.add('open'); }
+        function closeEditor() { editorOverlay.classList.remove('open'); generateResult(); }
+        function setEditMode(mode) {
+            editorState.mode = mode; document.getElementById('btn-mode-adjust').classList.toggle('active', mode === 'adjust'); document.getElementById('btn-mode-swap').classList.toggle('active', mode === 'swap');
+            if (mode === 'swap') { adjustPanel.classList.add('hidden'); editorInstruction.innerText = "Klik dua frame untuk menukar posisi."; editorState.swapSourceIndex = null; document.querySelectorAll('.editor-thumb').forEach(el => el.classList.remove('selected')); }
+            else { adjustPanel.classList.remove('hidden'); editorInstruction.innerText = "Klik frame untuk kalibrasi."; selectPhotoForEdit(editorState.selectedIndex); }
+        }
+        function getFilterString(cfg) { return `brightness(${cfg.brightness}%) contrast(${cfg.contrast}%) grayscale(${cfg.grayscale}) saturate(${cfg.saturation}%) hue-rotate(${cfg.hue}deg) sepia(${cfg.sepia}%)`; }
+        function renderEditorGrid() {
+            editorGrid.innerHTML = ''; state.photos.forEach((photoCanvas, i) => {
+                const div = document.createElement('div'); div.className = 'editor-thumb'; div.onclick = () => handleThumbClick(i);
+                const img = document.createElement('img'); img.src = photoCanvas.toDataURL(); img.style.filter = getFilterString(state.photoConfigs[i]); img.id = `thumb-img-${i}`;
+                const num = document.createElement('div'); num.className = 'thumb-number'; num.innerText = i + 1; div.appendChild(img); div.appendChild(num); editorGrid.appendChild(div);
             });
-
-            // 4. Draw Template Overlay (Layer Atas)
-            const overlayImage = new Image();
-            overlayImage.src = templateSrc;
-            
-            overlayImage.onload = () => {
-                ctx.drawImage(overlayImage, 0, 0, OUTPUT_WIDTH, OUTPUT_HEIGHT);
-                updatePreview();
-            };
-            
-            overlayImage.onerror = () => {
-                console.log("Template tidak ditemukan, menampilkan mode polos.");
-                updatePreview();
-            };
+        }
+        function handleThumbClick(i) { if (editorState.mode === 'adjust') selectPhotoForEdit(i); else handleSwapLogic(i); }
+        function selectPhotoForEdit(index) {
+            editorState.selectedIndex = index; document.querySelectorAll('.editor-thumb').forEach((el, i) => { if (i === index) el.classList.add('selected'); else el.classList.remove('selected'); });
+            const cfg = state.photoConfigs[index]; 
+            slBrightness.value = cfg.brightness; slContrast.value = cfg.contrast; slSaturation.value = cfg.saturation; slHue.value = cfg.hue; slSepia.value = cfg.sepia;
+            btnBnW.classList.toggle('active', cfg.grayscale > 0);
+        }
+        function handleSwapLogic(index) {
+            const thumbs = document.querySelectorAll('.editor-thumb');
+            if (editorState.swapSourceIndex === null) { editorState.swapSourceIndex = index; thumbs[index].classList.add('swap-target'); }
+            else { const idx1 = editorState.swapSourceIndex; const idx2 = index; if (idx1 !== idx2) { [state.photos[idx1], state.photos[idx2]] = [state.photos[idx2], state.photos[idx1]]; [state.photoConfigs[idx1], state.photoConfigs[idx2]] = [state.photoConfigs[idx2], state.photoConfigs[idx1]]; renderEditorGrid(); } editorState.swapSourceIndex = null; }
+        }
+        function updatePhotoSettings() {
+            const idx = editorState.selectedIndex; const cfg = state.photoConfigs[idx];
+            cfg.brightness = slBrightness.value; cfg.contrast = slContrast.value; cfg.saturation = slSaturation.value; cfg.hue = slHue.value; cfg.sepia = slSepia.value;
+            const img = document.getElementById(`thumb-img-${idx}`); if (img) img.style.filter = getFilterString(cfg);
+        }
+        function toggleBnW() {
+            const idx = editorState.selectedIndex; const cfg = state.photoConfigs[idx];
+            cfg.grayscale = (cfg.grayscale === 0) ? 1 : 0; 
+            btnBnW.classList.toggle('active', cfg.grayscale > 0);
+            updatePhotoSettings(); 
         }
 
-        // --- HELPER FUNCTIONS ---
-
-        // Fungsi agar gambar cover (tidak gepeng)
-        function drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY) {
-            if (arguments.length === 2) {
-                x = y = 0;
-                w = ctx.canvas.width;
-                h = ctx.canvas.height;
-            }
-            offsetX = typeof offsetX === "number" ? offsetX : 0.5;
-            offsetY = typeof offsetY === "number" ? offsetY : 0.5;
-
-            if (offsetX < 0) offsetX = 0;
-            if (offsetY < 0) offsetY = 0;
-            if (offsetX > 1) offsetX = 1;
-            if (offsetY > 1) offsetY = 1;
-
-            var iw = img.width, ih = img.height,
-                r = Math.min(w / iw, h / ih),
-                nw = iw * r, nh = ih * r,
-                cx, cy, cw, ch, ar = 1;
-
-            if (nw < w) ar = w / nw;                             
-            if (Math.abs(ar - 1) < 1e-14 && nh < h) ar = h / nh;
-            nw *= ar; nh *= ar;
-
-            cw = iw / (nw / w); ch = ih / (nh / h);
-            cx = (iw - cw) * offsetX; cy = (ih - ch) * offsetY;
-
-            if (cx < 0) cx = 0; if (cy < 0) cy = 0;
-            if (cw > iw) cw = iw; if (ch > ih) ch = ih;
-
-            ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h);
+        // =========================================
+        // RENDERING
+        // =========================================
+        function generateResult() {
+            finalCanvas.width = CONFIG.width; finalCanvas.height = CONFIG.height; const ctx = finalCanvas.getContext('2d');
+            ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, CONFIG.width, CONFIG.height);
+            let tSrc = "", positions = [], pW, pH;
+            if (state.template === 1) { tSrc = "assets/template_grid.png"; const mX = 80, gap = 40; pW = (CONFIG.width - (mX * 2) - gap) / 2; pH = pW * 0.75; let topY = (CONFIG.height - ((pH * 2) + gap)) / 2 + 50; positions = [{x:mX, y:topY}, {x:mX+pW+gap, y:topY}, {x:mX, y:topY+pH+gap}, {x:mX+pW+gap, y:topY+pH+gap}]; ctx.font = "bold 80px 'Indie Flower'"; ctx.fillStyle = "#111"; ctx.textAlign = "center"; ctx.fillText("Sketchy Moments", CONFIG.width/2, topY - 100); } 
+            else { tSrc = "assets/template_strip.png"; const mY = 150, gap = 30; pH = (CONFIG.height - (mY * 2) - (3 * gap)) / 4; pW = pH * (4/3); const sX = (CONFIG.width - pW) / 2; for(let i=0; i<4; i++) positions.push({x: sX, y: mY + (i * (pH + gap))}); ctx.font = "60px 'Patrick Hand'"; ctx.fillStyle = "#111"; ctx.textAlign = "center"; ctx.fillText("Classic Strip", CONFIG.width/2, CONFIG.height - 60); }
+            state.photos.forEach((img, i) => { if (positions[i]) { const cfg = state.photoConfigs[i]; ctx.save(); ctx.filter = getFilterString(cfg); drawImageProp(ctx, img, positions[i].x, positions[i].y, pW, pH); ctx.restore(); strokeRect(ctx, positions[i].x, positions[i].y, pW, pH); } });
+            const overlay = new Image(); overlay.src = tSrc; overlay.onload = () => { ctx.drawImage(overlay, 0, 0, CONFIG.width, CONFIG.height); updatePreview(); }; overlay.onerror = () => { updatePreview(); };
         }
+        function updatePreview() { resultPreview.src = finalCanvas.toDataURL('image/jpeg', 0.9); }
 
-        // Fungsi menggambar kotak coretan manual
-        function strokeSketchyRect(ctx, x, y, w, h) {
-            ctx.strokeStyle = "#2c2c2c";
-            ctx.lineWidth = 8;
-            ctx.lineCap = "round";
-            ctx.beginPath();
-            ctx.moveTo(x - 2, y - 2);
-            ctx.lineTo(x + w + 5, y + 3);
-            ctx.lineTo(x + w - 2, y + h + 4);
-            ctx.lineTo(x + 3, y + h - 2);
-            ctx.lineTo(x - 4, y + 5);
-            ctx.stroke();
-        }
+        // =========================================
+        // UTILITIES
+        // =========================================
+        function drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY) { if (arguments.length === 2) { x = y = 0; w = ctx.canvas.width; h = ctx.canvas.height; } offsetX = typeof offsetX === "number" ? offsetX : 0.5; offsetY = typeof offsetY === "number" ? offsetY : 0.5; if (offsetX < 0) offsetX = 0; if (offsetY < 0) offsetY = 0; if (offsetX > 1) offsetX = 1; if (offsetY > 1) offsetY = 1; var iw = img.width, ih = img.height, r = Math.min(w / iw, h / ih), nw = iw * r, nh = ih * r, cx, cy, cw, ch, ar = 1; if (nw < w) ar = w / nw; if (Math.abs(ar - 1) < 1e-14 && nh < h) ar = h / nh; nw *= ar; nh *= ar; cw = iw / (nw / w); ch = ih / (nh / h); cx = (iw - cw) * offsetX; cy = (ih - ch) * offsetY; if (cx < 0) cx = 0; if (cy < 0) cy = 0; if (cw > iw) cw = iw; if (ch > ih) ch = ih; ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h); }
+        function strokeRect(ctx, x, y, w, h) { ctx.strokeStyle = "#111"; ctx.lineWidth = 8; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x-2, y-2); ctx.lineTo(x+w+5, y+3); ctx.lineTo(x+w-2, y+h+4); ctx.lineTo(x+3, y+h-2); ctx.lineTo(x-4, y+5); ctx.stroke(); }
 
-        function updatePreview() {
-            const dataURL = finalCanvas.toDataURL('image/jpeg', 0.9);
-            resultPreview.src = dataURL;
-        }
-
-        function downloadPhoto() {
+        // --- FUNGSI BARU: Handle Save HD dan Pindah Halaman ---
+        function handleSaveAndShowSuccess() {
             const link = document.createElement('a');
-            link.download = 'sketchy-moment-' + Date.now() + '.jpg';
-            link.href = finalCanvas.toDataURL('image/jpeg', 1.0);
+            link.download = 'Levina-Photobooth-' + Date.now() + '.jpg';
+            link.href = finalCanvas.toDataURL('image/jpeg', 1.0); // HD Quality
             link.click();
+            switchPage(pages.editing, pages.saved);
+        }
+
+        // --- FUNGSI BARU: Tombol Balik ke Preview ---
+        function backToPreview() {
+            switchPage(pages.saved, pages.editing);
         }
     </script>
 </body>
