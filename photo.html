@@ -21,7 +21,8 @@
             --screen-glow: rgba(255, 255, 255, 0.15);
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        /* Reset yang lebih kuat untuk mencegah scroll yang tidak perlu */
+        *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
 
         body {
             margin: 0; padding: 0;
@@ -34,40 +35,64 @@
             background-position: -1px -1px;
             color: var(--ink-color);
             display: flex; justify-content: center; align-items: center;
-            /* Menggunakan min-height agar lebih fleksibel di mobile */
+            /* Gunakan dvh (dynamic viewport height) untuk mobile modern agar pas dengan address bar */
             min-height: 100vh; min-height: 100dvh;
-            overflow: hidden;
+            /* Izinkan scroll jika kontennya memang lebih tinggi dari layar HP kecil */
+            overflow-y: auto; 
+            overflow-x: hidden;
         }
 
         #app-container {
             width: 100%; max-width: 480px;
-            /* Menggunakan min-height dan batas maks */
-            min-height: 95dvh; max-height: 900px;
+            /* Tinggi fleksibel tapi mencoba memenuhi layar */
+            min-height: 95dvh; 
+            height: auto;
             background: transparent;
             position: relative;
             display: flex; flex-direction: column;
-            overflow: hidden; 
-            padding: 10px; /* Sedikit padding agar tidak nempel tepi layar */
+            /* Jangan hidden overflow di sini, biarkan body yang handle scroll */
+            /* overflow: hidden;  <-- DIHAPUS */
+            padding: 10px;
+            margin: auto; /* Center vertical/horizontal jika ada ruang sisa */
         }
 
         /* --- Pages --- */
         .page {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            /* Ubah position ke relative agar bisa discroll normal jika konten panjang */
+            position: relative; 
+            width: 100%; 
+            min-height: 100%; /* Pastikan minimal setinggi container */
+            height: auto;
+
             padding: 20px; padding-top: 40px;
             display: flex; flex-direction: column;
             align-items: center; justify-content: flex-start;
-            overflow-y: auto; /* Allow scrolling if content is too tall */
+            
             background: var(--paper-color);
             transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s;
             opacity: 0; pointer-events: none;
+            
+            /* Sembunyikan halaman yang tidak aktif agar tidak menumpuk */
+            display: none; 
+
             transform: translateY(50px); z-index: 1;
             border: 3px solid var(--ink-color);
             border-radius: 2px 4px 2px 3px;
+            margin-bottom: 20px; /* Beri sedikit ruang di bawah untuk scrolling */
         }
-        .page.active { opacity: 1; pointer-events: auto; transform: translateY(0); z-index: 2; }
-        .page.exit { transform: translateY(-120%) rotate(-5deg); opacity: 0; z-index: 3; }
+        /* Halaman aktif ditampilkan */
+        .page.active { opacity: 1; pointer-events: auto; transform: translateY(0); z-index: 2; display: flex; }
+        .page.exit { transform: translateY(-120%) rotate(-5deg); opacity: 0; z-index: 3; display: flex; }
+        
         .page-centered { justify-content: flex-start; padding-top: 20px !important; padding-bottom: 20px; }
-        #page-landing.page { background: transparent; border: none; padding: 0; overflow: hidden; }
+        
+        /* Khusus landing page */
+        #page-landing.page { 
+            background: transparent; border: none; padding: 0; 
+            /* Pastikan tinggi minimal agar mesin tidak terpotong di layar pendek */
+            min-height: 680px; 
+            overflow: visible;
+        }
 
         /* --- Typography & Elements --- */
         h1 { margin: 10px 0; font-size: 2rem; font-family: 'Indie Flower', cursive; line-height: 1; }
@@ -92,14 +117,15 @@
 
         /* --- Machine Styles --- */
         .machine-cabinet {
-            width: 100%; height: 100%;
+            width: 100%; height: 100%; flex: 1; /* Flex 1 agar mengisi ruang */
             background: linear-gradient(135deg, var(--machine-highlight) 0%, var(--machine-body) 50%, var(--machine-shadow) 100%);
             border-right: 12px solid #1a1a1a; border-bottom: 12px solid #1a1a1a; border-left: 2px solid #555; border-top: 2px solid #555;
             border-radius: 20px; padding: 20px;
             box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 15px 15px 40px rgba(0,0,0,0.5);
             position: relative;
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; justify-content: space-between;
+            /* overflow: hidden; <-- DIHAPUS agar dekorasi tidak terpotong */
+            justify-content: space-between;
         }
         
         .machine-top-deco {
@@ -108,12 +134,12 @@
         .deco-lens {
             width: 70px; height: 70px; background: #000; border-radius: 50%; border: 6px solid #333;
             background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8) 2%, transparent 10%), radial-gradient(circle at 50% 50%, #000 50%, #222 70%, #555 100%);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: all 0.3s;
         }
         .deco-flash {
             width: 90px; height: 35px; background: #eee; border: 4px solid #111; border-radius: 2px;
             background: repeating-linear-gradient(90deg, #fff, #fff 10px, #ddd 10px, #ddd 20px);
-            box-shadow: 0 0 20px rgba(255,255,255,0.5); animation: strobeFlash 1s infinite steps(2);
+            box-shadow: 0 0 20px rgba(255,255,255,0.5); animation: strobeFlash 1s infinite steps(2); transition: all 0.3s;
         }
         @keyframes strobeFlash { 0% { opacity: 1; } 50% { opacity: 0.7; } }
 
@@ -242,24 +268,43 @@
         .levina-plaque::before, .levina-plaque::after { content: '+'; position: absolute; top: 50%; transform: translateY(-50%); color: #444; font-family: sans-serif; font-weight: bold; }
         .levina-plaque::before { left: 6px; } .levina-plaque::after { right: 6px; }
 
-        /* --- Camera UI (FIXED FOR MOBILE) --- */
+        /* --- Camera UI (PERBAIKAN FINAL UNTUK MOBILE) --- */
         #camera-frame-wrapper {
             position: relative;
-            width: 90%; /* Lebar relatif agar ada jarak di HP */
-            max-width: 400px; /* Batas lebar di layar besar */
-            aspect-ratio: 4/3; /* PENTING: Memaksa rasio 4:3 */
+            
+            /* --- PERBAIKAN UTAMA DI SINI --- */
+            /* Jangan gunakan width 90% saja. Gunakan kombinasi max-width dan max-height */
+            width: auto; 
+            height: auto;
+            
+            /* Batasi agar lebarnya tidak lebih dari 90% layar */
+            max-width: 90%;
+            /* PENTING: Batasi tingginya agar tidak lebih dari 65% tinggi layar HP. 
+               Ini yang mencegahnya jadi "gede banget" secara vertikal. */
+            max-height: 65vh; 
+            
+            /* Batas absolut untuk desktop */
+            max-width: 500px; 
+
+            /* Aspect ratio 4:3 akan menghitung dimensi akhir berdasarkan batasan max-width/height di atas */
+            aspect-ratio: 4/3; 
+            
             background: #fff;
             border: 4px solid var(--ink-color);
             box-shadow: 8px 8px 0 var(--ink-color);
             transform: rotate(-1deg);
-            margin: 10px auto; /* Center horizontal */
-            overflow: hidden; /* Potong video yang berlebih */
+            margin: 15px auto; /* Center horizontal */
+            overflow: hidden; 
+            flex-shrink: 0; /* Mencegah frame gepeng jika layar sangat sempit */
         }
 
         video {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* PENTING: Isi penuh frame 4:3 tanpa gepeng (akan di-crop jika perlu) */
+            /* object-fit: cover MEMASTIKAN video mengisi penuh kotak 4:3 tanpa gepeng.
+               Konsekuensinya: video akan di-zoom/crop sedikit jika kamera HP aslinya 16:9.
+               Ini normal untuk photobooth agar sesuai template. */
+            object-fit: cover; 
             transform: scaleX(-1); /* Mirror */
             border: 2px solid #000;
             display: block;
@@ -271,7 +316,7 @@
             z-index: 10;
         }
 
-        #mini-gallery { display: flex; justify-content: center; height: 60px; width: 100%; margin-top: 20px; perspective: 500px; }
+        #mini-gallery { display: flex; justify-content: center; height: 60px; width: 100%; margin-top: 20px; perspective: 500px; flex-shrink: 0; }
         .mini-photo {
             width: 50px; height: 40px; background: #eee; border: 2px solid #fff;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2); margin: 0 -15px; 
@@ -286,7 +331,7 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.15); margin-top: 20px; margin-bottom: 25px; transform: rotate(1deg);
         }
 
-        .template-selector { display: flex; gap: 15px; margin-bottom: 10px; }
+        .template-selector { display: flex; gap: 15px; margin-bottom: 10px; flex-shrink: 0; }
         .template-btn {
             width: 50px; height: 70px; border: 3px solid #ccc; cursor: pointer;
             display: flex; align-items: center; justify-content: center; font-size: 0.7rem;
@@ -295,14 +340,16 @@
         .template-btn.active { border-color: var(--ink-color); background: var(--ink-color); color: #fff; transform: scale(1.1); box-shadow: 3px 3px 0 #999; }
 
         #editor-overlay {
-            position: absolute; top: 100%; left: 0; width: 100%; height: 100%;
-            background: var(--paper-color); z-index: 10;
+            position: fixed; /* Gunakan fixed agar menutupi layar penuh dan tidak ikut scroll body */
+            top: 100%; left: 0; width: 100%; height: 100%;
+            background: var(--paper-color); z-index: 100;
             display: flex; flex-direction: column; padding: 20px;
-            transition: top 0.4s ease-in-out; overflow-y: auto;
-             border: 3px solid var(--ink-color); border-radius: 2px 4px 2px 3px;
+            transition: top 0.4s ease-in-out; 
+            overflow-y: auto; /* Scroll di dalam editor */
+            border: 3px solid var(--ink-color);
         }
         #editor-overlay.open { top: 0; }
-        .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; width: 100%; }
+        .editor-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; width: 100%; flex-shrink: 0; }
         .editor-thumb {
             width: 100%; aspect-ratio: 4/3; background: #ddd; border: 4px solid transparent; cursor: pointer;
             position: relative; overflow: hidden; transition: transform 0.2s;
@@ -312,14 +359,14 @@
         .editor-thumb.swap-target { border-color: #999; border-style: dashed; }
         .thumb-number { position: absolute; top: 0; left: 0; background: var(--ink-color); color: #fff; width: 25px; height: 25px; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; font-family: 'VT323';}
         
-        .editor-controls { width: 100%; background: #eee; padding: 15px; border-radius: 5px; border: 3px solid var(--ink-color); }
+        .editor-controls { width: 100%; background: #eee; padding: 15px; border-radius: 5px; border: 3px solid var(--ink-color); flex-shrink: 0; }
         .control-row { display: flex; align-items: center; margin-bottom: 8px; justify-content: space-between; }
         .control-row label { font-size: 0.8rem; width: 75px; font-weight: bold; }
         input[type=range] { flex: 1; cursor: pointer; accent-color: var(--ink-color); }
         
         .toggle-btn { background: #fff; border: 3px solid var(--ink-color); padding: 8px 15px; cursor: pointer; font-family: inherit; font-weight: bold; }
         .toggle-btn.active { background: var(--ink-color); color: #fff; }
-        .mode-switch { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        .mode-switch { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; flex-shrink: 0; }
 
         #flash { position: fixed; top:0; left:0; width:100vw; height:100vh; background:#fff; opacity:0; pointer-events:none; z-index:99; }
         .flash-anim { animation: flashEffect 0.15s ease-out; }
@@ -347,24 +394,24 @@
             50% { transform: rotate(2deg) scale(1.05); }
         }
 
-        /* --- Media Queries --- */
-        @media (max-height: 700px) {
-            .machine-top-deco { display: none; }
-            .machine-cabinet { padding: 15px; }
-            .screen-bezel { padding: 15px; min-height: 150px; margin-top: 10px; }
-            .landing-icon { width: 60px; }
-            .screen-content h1 { font-size: 1.5rem; margin: 2px 0; }
-            .control-panel { padding: 10px; margin-top: 15px; }
-            .big-red-button { width: 80px; height: 80px; font-size: 1.6rem; outline-width: 4px; }
-            .coin-slot { width: 40px; height: 60px; font-size: 0.7rem; }
+        /* --- Media Queries untuk layar pendek (PERBAIKAN MASALAH 1) --- */
+        @media (max-height: 720px) {
+            /* JANGAN gunakan display: none. Tapi kecilkan ukurannya agar muat */
+            .deco-lens { width: 50px; height: 50px; border-width: 4px; }
+            .deco-flash { width: 70px; height: 25px; border-width: 2px; }
+            .machine-top-deco { gap: 10px; margin-bottom: 10px; }
+            
+            .machine-cabinet { padding: 10px; }
+            .screen-bezel { padding: 10px; min-height: 180px; margin-top: 5px; }
+            .landing-icon { width: 50px; }
+            .screen-content h1 { font-size: 1.4rem; margin: 2px 0; }
+            .control-panel { padding: 8px; margin-top: 10px; }
+            .big-red-button { width: 70px; height: 70px; font-size: 1.4rem; outline-width: 3px; }
+            .coin-slot { width: 35px; height: 50px; font-size: 0.6rem; }
+            /* Plaque bisa di-hide di layar sangat pendek */
             .levina-plaque { display: none; } 
-            .sketchy-robot { width: 60px; height: 40px; margin-bottom: 10px; }
-            #screen-locked p { font-size: 0.9rem; margin-bottom: 5px; }
-        }
-        
-        /* Tambahan untuk layar sangat sempit */
-        @media (max-width: 350px) {
-            #camera-frame-wrapper { width: 95%; }
+            .sketchy-robot { width: 50px; height: 35px; margin-bottom: 5px; }
+            #screen-locked p { font-size: 0.8rem; margin-bottom: 2px; }
         }
     </style>
 </head>
@@ -419,17 +466,19 @@
             </div>
         </div>
 
-        <div id="page-camera" class="page page-centered">
-            <h2 style="font-size:1.2rem; margin:0; transition: opacity 0.3s;">Siap Pose!</h2>
+        <div id="page-camera" class="page">
+            <h2 style="font-size:1.2rem; margin:0; transition: opacity 0.3s; flex-shrink: 0;">Siap Pose!</h2>
             <div id="camera-frame-wrapper">
                 <video id="video" autoplay playsinline></video>
                 <div id="countdown-overlay">3</div>
             </div>
             <div id="mini-gallery"></div>
-            <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 5px; font-weight: bold;">AUTO-CAPTURE ENGAGED...</p>
+            <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 5px; font-weight: bold; flex-shrink: 0;">AUTO-CAPTURE ENGAGED...</p>
+            <div style="height: 20px; flex-shrink: 0;"></div>
         </div>
 
-        <div id="page-processing" class="page page-centered">
+        <div id="page-processing" class="page">
+            <div style="height: 50px;"></div>
             <div style="font-size: 3rem; animation: wobble 1s infinite;">⚙️</div>
             <h2>Memproses wajah imoets mu...</h2>
             <p>Mesin sedang mencetak...</p>
@@ -437,20 +486,21 @@
 
         <div id="page-editing" class="page">
             <canvas id="final-canvas" class="hidden"></canvas>
-            <button class="btn-sketchy" style="width: 100%; margin-bottom: 10px; background: #eee;" onclick="openEditor()">🔧 Adjust Filter & Posisi</button>
+            <button class="btn-sketchy" style="width: 100%; margin-bottom: 10px; background: #eee; flex-shrink: 0;" onclick="openEditor()">🔧 Adjust Filter & Posisi</button>
             <img id="result-preview" src="" alt="Hasil">
-            <div class="template-selector">
-                <div class="template-btn active" onclick="setTemplate(1)">GRID</div>
-                <div class="template-btn" onclick="setTemplate(2)">STRIP</div>
-            </div>
-            <div class="button-group">
+            <div class="button-group" style="flex-shrink: 0;">
                 <button class="btn-sketchy btn-secondary" onclick="confirmRetry()">↺ Ulangi (Reset)</button>
                 <button class="btn-sketchy" onclick="handleSaveAndShowSuccess()">⬇ Cetak HD & Selesai</button>
             </div>
-            <div style="height: 50px;"></div>
+             <div class="template-selector">
+                <div class="template-btn active" onclick="setTemplate(1)">GRID</div>
+                <div class="template-btn" onclick="setTemplate(2)">STRIP</div>
+            </div>
+            <div style="height: 50px; flex-shrink: 0;"></div>
         </div>
 
-        <div id="page-saved" class="page page-centered">
+        <div id="page-saved" class="page">
+            <div style="height: 50px;"></div>
             <div class="sketchy-success-icon">
                 <span>✔</span>
             </div>
@@ -463,15 +513,16 @@
             <div style="margin-top: 15px; font-size: 0.9rem; opacity: 0.7;">
                 Atau mau foto ulang? Klik 'Balik ke Preview' lalu 'Ulangi'.
             </div>
+            <div style="height: 50px;"></div>
         </div>
 
         <div id="editor-overlay">
-            <h2 style="margin-top:0;">Panel Editing</h2>
-            <div class="mode-switch">
+            <h2 style="margin-top:0; flex-shrink: 0;">Panel Editing</h2>
+            <div class="mode-switch" style="flex-shrink: 0;">
                 <button id="btn-mode-adjust" class="toggle-btn active" onclick="setEditMode('adjust')">Adjust</button>
                 <button id="btn-mode-swap" class="toggle-btn" onclick="setEditMode('swap')">Swap</button>
             </div>
-            <p id="editor-instruction" style="font-size: 0.8rem; text-align: center; font-family: 'VT323';">Pilih frame untuk diedit.</p>
+            <p id="editor-instruction" style="font-size: 0.8rem; text-align: center; font-family: 'VT323'; flex-shrink: 0;">Pilih frame untuk diedit.</p>
             <div class="editor-grid" id="editor-grid"></div>
             
             <div id="adjust-panel" class="editor-controls">
@@ -486,8 +537,8 @@
                 </div>
             </div>
 
-            <button class="btn-sketchy" style="margin-top: 20px;" onclick="closeEditor()">Dah Cakep, slese</button>
-            <div style="height: 50px;"></div>
+            <button class="btn-sketchy" style="margin-top: 20px; flex-shrink: 0;" onclick="closeEditor()">Dah Cakep, slese</button>
+            <div style="height: 50px; flex-shrink: 0;"></div>
         </div>
 
     </div>
@@ -605,6 +656,8 @@
 
         // Navigation
         function switchPage(fromPage, toPage) {
+            // Scroll ke atas saat pindah halaman
+            window.scrollTo(0,0);
             fromPage.classList.add('exit'); fromPage.classList.remove('active'); toPage.scrollTop = 0;
             setTimeout(() => { toPage.classList.add('active'); fromPage.classList.remove('exit'); }, 300);
         }
@@ -615,9 +668,10 @@
             stopLandingTextRotation();
             try {
                 state.photos = []; state.photoConfigs = []; state.index = 0; miniGallery.innerHTML = ''; 
-                state.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1920 }, height: { ideal: 1080 } } });
+                // Meminta resolusi yang lebih masuk akal untuk mobile agar tidak terlalu berat
+                state.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } } });
                 video.srcObject = state.stream; switchPage(pages.landing, pages.camera); setTimeout(runSequence, 1500);
-            } catch (err) { alert("Gagal akses sistem kamera: " + err); }
+            } catch (err) { alert("Gagal akses sistem kamera: " + err + ". Pastikan izin kamera diberikan di browser."); }
         }
 
         function runSequence() {
@@ -707,6 +761,7 @@
             finalCanvas.width = CONFIG.width; finalCanvas.height = CONFIG.height; const ctx = finalCanvas.getContext('2d');
             ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, CONFIG.width, CONFIG.height);
             let tSrc = "", positions = [], pW, pH;
+            /* PASTIKAN FILE INI ADA: assets/template_grid.png dan assets/template_strip.png */
             if (state.template === 1) { tSrc = "assets/template_grid.png"; const mX = 80, gap = 40; pW = (CONFIG.width - (mX * 2) - gap) / 2; pH = pW * 0.75; let topY = (CONFIG.height - ((pH * 2) + gap)) / 2 + 50; positions = [{x:mX, y:topY}, {x:mX+pW+gap, y:topY}, {x:mX, y:topY+pH+gap}, {x:mX+pW+gap, y:topY+pH+gap}]; ctx.font = "bold 80px 'Indie Flower'"; ctx.fillStyle = "#111"; ctx.textAlign = "center"; ctx.fillText("Sketchy Moments", CONFIG.width/2, topY - 100); } 
             else { tSrc = "assets/template_strip.png"; const mY = 150, gap = 30; pH = (CONFIG.height - (mY * 2) - (3 * gap)) / 4; pW = pH * (4/3); const sX = (CONFIG.width - pW) / 2; for(let i=0; i<4; i++) positions.push({x: sX, y: mY + (i * (pH + gap))}); ctx.font = "60px 'Patrick Hand'"; ctx.fillStyle = "#111"; ctx.textAlign = "center"; ctx.fillText("Classic Strip", CONFIG.width/2, CONFIG.height - 60); }
             state.photos.forEach((img, i) => { if (positions[i]) { const cfg = state.photoConfigs[i]; ctx.save(); ctx.filter = getFilterString(cfg); drawImageProp(ctx, img, positions[i].x, positions[i].y, pW, pH); ctx.restore(); strokeRect(ctx, positions[i].x, positions[i].y, pW, pH); } });
