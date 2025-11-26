@@ -21,7 +21,7 @@
             --screen-glow: rgba(255, 255, 255, 0.15);
         }
 
-        /* Reset yang lebih kuat untuk mencegah scroll yang tidak perlu */
+        /* Reset yang kuat */
         *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
 
         body {
@@ -35,7 +35,7 @@
             background-position: -1px -1px;
             color: var(--ink-color);
             display: flex; justify-content: center; align-items: center;
-            /* Gunakan dvh (dynamic viewport height) untuk mobile modern agar pas dengan address bar */
+            /* Gunakan dvh untuk mobile modern agar pas dengan address bar */
             min-height: 100vh; min-height: 100dvh;
             /* Izinkan scroll jika kontennya memang lebih tinggi dari layar HP kecil */
             overflow-y: auto; 
@@ -50,31 +50,23 @@
             background: transparent;
             position: relative;
             display: flex; flex-direction: column;
-            /* Jangan hidden overflow di sini, biarkan body yang handle scroll */
-            /* overflow: hidden;  <-- DIHAPUS */
             padding: 10px;
             margin: auto; /* Center vertical/horizontal jika ada ruang sisa */
         }
 
         /* --- Pages --- */
         .page {
-            /* Ubah position ke relative agar bisa discroll normal jika konten panjang */
-            position: relative; 
+            position: relative; /* Ubah ke relative agar bisa discroll normal */
             width: 100%; 
             min-height: 100%; /* Pastikan minimal setinggi container */
             height: auto;
-
             padding: 20px; padding-top: 40px;
             display: flex; flex-direction: column;
             align-items: center; justify-content: flex-start;
-            
             background: var(--paper-color);
             transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s;
             opacity: 0; pointer-events: none;
-            
-            /* Sembunyikan halaman yang tidak aktif agar tidak menumpuk */
-            display: none; 
-
+            display: none; /* Sembunyikan halaman yang tidak aktif */
             transform: translateY(50px); z-index: 1;
             border: 3px solid var(--ink-color);
             border-radius: 2px 4px 2px 3px;
@@ -90,7 +82,7 @@
         #page-landing.page { 
             background: transparent; border: none; padding: 0; 
             /* Pastikan tinggi minimal agar mesin tidak terpotong di layar pendek */
-            min-height: 680px; 
+            min-height: 650px; 
             overflow: visible;
         }
 
@@ -124,7 +116,6 @@
             box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 15px 15px 40px rgba(0,0,0,0.5);
             position: relative;
             display: flex; flex-direction: column; align-items: center;
-            /* overflow: hidden; <-- DIHAPUS agar dekorasi tidak terpotong */
             justify-content: space-between;
         }
         
@@ -268,42 +259,34 @@
         .levina-plaque::before, .levina-plaque::after { content: '+'; position: absolute; top: 50%; transform: translateY(-50%); color: #444; font-family: sans-serif; font-weight: bold; }
         .levina-plaque::before { left: 6px; } .levina-plaque::after { right: 6px; }
 
-        /* --- Camera UI (PERBAIKAN FINAL UNTUK MOBILE) --- */
+        /* --- Camera UI (PENTING UNTUK MOBILE) --- */
         #camera-frame-wrapper {
             position: relative;
-            
-            /* --- PERBAIKAN UTAMA DI SINI --- */
-            /* Jangan gunakan width 90% saja. Gunakan kombinasi max-width dan max-height */
-            width: auto; 
+            /* Gunakan vmin agar frame menyesuaikan dengan sisi layar yang paling kecil */
+            width: 80vmin; 
             height: auto;
-            
-            /* Batasi agar lebarnya tidak lebih dari 90% layar */
             max-width: 90%;
-            /* PENTING: Batasi tingginya agar tidak lebih dari 65% tinggi layar HP. 
-               Ini yang mencegahnya jadi "gede banget" secara vertikal. */
-            max-height: 65vh; 
-            
+            /* Batasi tinggi agar tidak terlalu besar secara vertikal di HP */
+            max-height: 60vh; 
             /* Batas absolut untuk desktop */
             max-width: 500px; 
 
-            /* Aspect ratio 4:3 akan menghitung dimensi akhir berdasarkan batasan max-width/height di atas */
+            /* Aspect ratio 4:3 */
             aspect-ratio: 4/3; 
             
             background: #fff;
             border: 4px solid var(--ink-color);
             box-shadow: 8px 8px 0 var(--ink-color);
             transform: rotate(-1deg);
-            margin: 15px auto; /* Center horizontal */
+            margin: 15px auto;
             overflow: hidden; 
-            flex-shrink: 0; /* Mencegah frame gepeng jika layar sangat sempit */
+            flex-shrink: 0;
         }
 
         video {
             width: 100%;
             height: 100%;
-            /* object-fit: cover MEMASTIKAN video mengisi penuh kotak 4:3 tanpa gepeng.
-               Konsekuensinya: video akan di-zoom/crop sedikit jika kamera HP aslinya 16:9.
-               Ini normal untuk photobooth agar sesuai template. */
+            /* object-fit: cover agar mengisi penuh frame 4:3 */
             object-fit: cover; 
             transform: scaleX(-1); /* Mirror */
             border: 2px solid #000;
@@ -340,7 +323,7 @@
         .template-btn.active { border-color: var(--ink-color); background: var(--ink-color); color: #fff; transform: scale(1.1); box-shadow: 3px 3px 0 #999; }
 
         #editor-overlay {
-            position: fixed; /* Gunakan fixed agar menutupi layar penuh dan tidak ikut scroll body */
+            position: fixed; /* Gunakan fixed agar menutupi layar penuh */
             top: 100%; left: 0; width: 100%; height: 100%;
             background: var(--paper-color); z-index: 100;
             display: flex; flex-direction: column; padding: 20px;
@@ -394,24 +377,42 @@
             50% { transform: rotate(2deg) scale(1.05); }
         }
 
-        /* --- Media Queries untuk layar pendek (PERBAIKAN MASALAH 1) --- */
-        @media (max-height: 720px) {
-            /* JANGAN gunakan display: none. Tapi kecilkan ukurannya agar muat */
+        /* --- Media Queries untuk layar pendek (PERBAIKAN UTAMA) --- */
+        /* Menggunakan 850px agar mencakup lebih banyak HP */
+        @media (max-height: 850px) {
+            /* 1. Kecilkan dekorasi atas */
             .deco-lens { width: 50px; height: 50px; border-width: 4px; }
             .deco-flash { width: 70px; height: 25px; border-width: 2px; }
-            .machine-top-deco { gap: 10px; margin-bottom: 10px; }
+            .machine-top-deco { gap: 10px; margin-bottom: 5px; }
             
+            /* 2. Rapatkan padding kabinet */
             .machine-cabinet { padding: 10px; }
-            .screen-bezel { padding: 10px; min-height: 180px; margin-top: 5px; }
-            .landing-icon { width: 50px; }
-            .screen-content h1 { font-size: 1.4rem; margin: 2px 0; }
-            .control-panel { padding: 8px; margin-top: 10px; }
-            .big-red-button { width: 70px; height: 70px; font-size: 1.4rem; outline-width: 3px; }
-            .coin-slot { width: 35px; height: 50px; font-size: 0.6rem; }
-            /* Plaque bisa di-hide di layar sangat pendek */
-            .levina-plaque { display: none; } 
+
+            /* 3. Atur ulang bezel layar agar tidak terlalu tinggi */
+            .screen-bezel { padding: 10px; min-height: 160px; margin-top: 5px; }
+            
+            /* 4. KECILKAN ISI LAYAR SECARA AGRESIF */
+            .landing-icon { width: 40px; margin-bottom: 5px; } /* Ikon kamera lebih kecil */
+            .screen-content h1 { font-size: 1.3rem; margin: 2px 0; } /* Judul lebih kecil */
+            .screen-content p { font-size: 0.8rem; margin-bottom: 5px; } /* Teks deskripsi lebih kecil */
+            
+            /* 5. Kecilkan robot dan input di lock screen */
             .sketchy-robot { width: 50px; height: 35px; margin-bottom: 5px; }
-            #screen-locked p { font-size: 0.8rem; margin-bottom: 2px; }
+            .robot-mouth { width: 20px; height: 5px; margin-top: 8px; border-width: 2px; }
+            .sketchy-robot::before, .sketchy-robot::after { width: 8px; height: 8px; top: 10px; }
+            #screen-locked p { font-size: 0.8rem; margin-bottom: 2px; line-height: 1.1; }
+            .terminal-input { font-size: 1rem; padding: 2px 5px; margin-bottom: 5px; width: 90%; }
+            .terminal-btn { font-size: 1rem; padding: 2px 10px; }
+            #unlock-error { margin-top: 2px; }
+
+            /* 6. Kecilkan panel kontrol bawah */
+            .control-panel { padding: 8px; margin-top: 10px; }
+            .big-red-button { width: 65px; height: 65px; font-size: 1.3rem; outline-width: 3px; }
+            .big-red-button span { font-size: 0.7rem; margin-top: 1px; }
+            .coin-slot { width: 35px; height: 50px; font-size: 0.6rem; }
+            
+            /* 7. SEMBUNYIKAN Plakat di layar pendek untuk menghemat ruang */
+            .levina-plaque { display: none; } 
         }
     </style>
 </head>
