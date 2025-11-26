@@ -27,7 +27,6 @@
         html, body {
             margin: 0; padding: 0;
             width: 100%;
-            /* PENTING: Jangan paksa tinggi 100%. Biarkan auto. */
             height: auto; 
             min-height: 100dvh; /* Minimal setinggi layar */
         }
@@ -41,35 +40,38 @@
             background-size: 30px 30px;
             background-position: -1px -1px;
             color: var(--ink-color);
-            /* Gunakan flex column agar konten berada di tengah secara horizontal, tapi mulai dari atas */
+            /* Body tetap rata atas agar halaman panjang bisa discroll */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: flex-start;
-            /* Izinkan scroll vertikal */
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 20px 10px; /* Padding di body agar tidak mepet tepi */
+            padding: 20px 10px;
         }
 
         #app-container {
             width: 100%;
             max-width: 480px;
-            /* Tinggi menyesuaikan konten */
+            /* Tinggi menyesuaikan konten, tapi minimal setinggi layar dikurangi padding agar bisa dicenter */
+            min-height: calc(100dvh - 40px);
             height: auto;
             position: relative;
-            /* Pastikan overflow terlihat agar bayangan mesin tidak terpotong */
             overflow: visible;
+            display: flex;
+            flex-direction: column;
         }
 
         /* --- Pages --- */
         .page {
-            position: relative; /* Relative agar mengalir normal di halaman */
+            position: relative; 
             width: 100%;
-            height: auto; /* Tinggi menyesuaikan isi */
+            height: auto; /* Tinggi default menyesuaikan isi */
             padding: 30px 20px;
             display: flex; flex-direction: column;
             align-items: center;
+            /* Default alignment: rata atas (untuk editor/landing) */
+            justify-content: flex-start;
             
             background: var(--paper-color);
             transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s;
@@ -79,13 +81,22 @@
             border: 3px solid var(--ink-color);
             border-radius: 2px 4px 2px 3px;
             box-shadow: 5px 5px 0 rgba(0,0,0,0.1);
+            flex-grow: 1; /* Biarkan page mengisi ruang container */
         }
         .page.active { opacity: 1; pointer-events: auto; transform: translateY(0); z-index: 2; display: flex; }
         .page.exit { transform: translateY(-120%) rotate(-5deg); opacity: 0; z-index: 3; display: flex; }
         
-        /* Khusus landing page: transparan dan tanpa padding karena mesin sudah punya padding */
+        /* --- PERBAIKAN: Class Khusus untuk Halaman yang Centered --- */
+        /* Halaman yang diberi class ini akan rata tengah secara vertikal */
+        .page.is-centered-page {
+            justify-content: center !important;
+            padding-top: 20px; /* Kurangi padding atas sedikit */
+            padding-bottom: 20px;
+        }
+        
+        /* Khusus landing page */
         #page-landing.page { 
-            background: transparent; border: none; padding: 0; box-shadow: none;
+            background: transparent; border: none; padding: 0; box-shadow: none; justify-content: center;
         }
 
         /* --- Typography & Elements --- */
@@ -109,21 +120,20 @@
         .button-group { display: flex; width: 100%; gap: 10px; margin-top: 20px; margin-bottom: 20px; }
         .button-group button { flex: 1; }
 
-        /* --- Machine Styles (PERBAIKAN STRUKTUR) --- */
+        /* --- Machine Styles --- */
         .machine-cabinet {
             width: 100%;
-            /* Tinggi auto agar memanjang ke bawah sesuai isi */
-            height: auto;
+            height: auto; /* Biarkan memanjang */
+            min-height: 90dvh; /* Minimal tinggi agar terlihat penuh */
             background: linear-gradient(135deg, var(--machine-highlight) 0%, var(--machine-body) 50%, var(--machine-shadow) 100%);
             border-right: 12px solid #1a1a1a; border-bottom: 12px solid #1a1a1a; border-left: 2px solid #555; border-top: 2px solid #555;
             border-radius: 20px; 
-            padding: 25px; /* Padding yang cukup */
+            padding: 25px;
             box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 15px 15px 40px rgba(0,0,0,0.3);
             position: relative;
             display: flex; flex-direction: column; align-items: center;
-            /* PENTING: Gunakan flex-start dan gap. Jangan space-between. */
-            justify-content: flex-start;
-            gap: 25px; /* Jarak antar elemen mesin */
+            justify-content: flex-start; /* Tetap flex-start agar rapi dari atas */
+            gap: 25px; /* Jarak antar elemen */
         }
         
         .machine-top-deco {
@@ -141,14 +151,12 @@
         }
         @keyframes strobeFlash { 0% { opacity: 1; } 50% { opacity: 0.7; } }
 
-        /* PERBAIKAN LAYAR TENGAH */
         .screen-bezel {
             width: 100%; max-width: 380px;
             background: #222; padding: 20px; border-radius: 10px; border: 3px solid #111;
             box-shadow: 0 10px 20px rgba(0,0,0,0.5); position: relative;
-            /* Hapus flex: 1. Beri tinggi minimal yang pasti. */
-            flex: none;
-            min-height: 280px; /* Dijamin tidak akan gepeng */
+            flex: none; /* Jangan stretch */
+            min-height: 280px; /* Jaminan tinggi minimal */
             height: auto;
             display: flex; align-items: center; justify-content: center;
         }
@@ -159,7 +167,6 @@
             background: var(--paper-color); width: 100%; height: 100%;
             border: 6px solid #111; display: flex; flex-direction: column; align-items: center; justify-content: center;
             padding: 15px; box-shadow: inset 0 0 50px var(--screen-glow); position: relative; overflow: hidden;
-             /* Pastikan konten layar juga punya tinggi minimal */
              min-height: 240px;
         }
         .screen-content::after { content: ''; position: absolute; top:0; left:0; width:100%; height:100%; background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 1px, transparent 1px, transparent 3px); pointer-events: none; z-index: 5; }
@@ -367,7 +374,6 @@
         @keyframes wobbleSlow { 0%, 100% { transform: rotate(-2deg) scale(1); } 50% { transform: rotate(2deg) scale(1.05); } }
 
         /* --- Media Queries Sederhana --- */
-        /* Hanya untuk memastikan tidak terlalu lebar di layar yang sangat sempit */
         @media (max-width: 350px) {
              .machine-cabinet { padding: 15px; }
              .big-red-button { width: 80px; height: 80px; }
@@ -426,7 +432,7 @@
             </div>
         </div>
 
-        <div id="page-camera" class="page">
+        <div id="page-camera" class="page is-centered-page">
             <h2 style="font-size:1.2rem; margin:0; transition: opacity 0.3s; flex-shrink: 0;">Siap Pose!</h2>
             <div id="camera-frame-wrapper">
                 <video id="video" autoplay playsinline></video>
@@ -436,8 +442,8 @@
             <p style="font-size: 0.8rem; opacity: 0.7; margin-top: 5px; font-weight: bold; flex-shrink: 0;">AUTO-CAPTURE ENGAGED...</p>
         </div>
 
-        <div id="page-processing" class="page">
-            <div style="font-size: 3rem; animation: wobble 1s infinite; margin-top: 50px;">⚙️</div>
+        <div id="page-processing" class="page is-centered-page">
+            <div style="font-size: 3rem; animation: wobble 1s infinite;">⚙️</div>
             <h2>Memproses wajah imoets mu...</h2>
             <p>Mesin sedang mencetak...</p>
         </div>
@@ -456,8 +462,8 @@
             </div>
         </div>
 
-        <div id="page-saved" class="page">
-            <div class="sketchy-success-icon" style="margin-top: 50px;">
+        <div id="page-saved" class="page is-centered-page">
+            <div class="sketchy-success-icon">
                 <span>✔</span>
             </div>
             <h2 style="font-family: 'Indie Flower'; font-size: 2rem; margin-bottom: 10px;">Berhasil Disimpan!</h2>
