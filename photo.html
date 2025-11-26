@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lev Photobooth - Levina Custom Edition</title>
     
+    <link rel="icon" type="image/png" href="assets/camera.png">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Indie+Flower&family=Patrick+Hand&family=VT323&display=swap" rel="stylesheet">
@@ -86,11 +88,10 @@
         .page.active { opacity: 1; pointer-events: auto; transform: translateY(0); z-index: 2; display: flex; }
         .page.exit { transform: translateY(-120%) rotate(-5deg); opacity: 0; z-index: 3; display: flex; }
         
-        /* --- PERBAIKAN: Class Khusus untuk Halaman yang Centered --- */
-        /* Halaman yang diberi class ini akan rata tengah secara vertikal */
+        /* Class Khusus untuk Halaman yang Centered */
         .page.is-centered-page {
             justify-content: center !important;
-            padding-top: 20px; /* Kurangi padding atas sedikit */
+            padding-top: 20px;
             padding-bottom: 20px;
         }
         
@@ -452,13 +453,15 @@
             <canvas id="final-canvas" class="hidden"></canvas>
             <button class="btn-sketchy" style="width: 100%; margin-bottom: 10px; background: #eee; flex-shrink: 0;" onclick="openEditor()">🔧 Adjust Filter & Posisi</button>
             <img id="result-preview" src="" alt="Hasil">
+            
+            <div class="template-selector">
+                <div class="template-btn active" onclick="setTemplate(1)">GRID</div>
+                <div class="template-btn" onclick="setTemplate(2)">STRIP</div>
+            </div>
+
             <div class="button-group" style="flex-shrink: 0;">
                 <button class="btn-sketchy btn-secondary" onclick="confirmRetry()">↺ Ulangi (Reset)</button>
                 <button class="btn-sketchy" onclick="handleSaveAndShowSuccess()">⬇ Cetak HD & Selesai</button>
-            </div>
-             <div class="template-selector">
-                <div class="template-btn active" onclick="setTemplate(1)">GRID</div>
-                <div class="template-btn" onclick="setTemplate(2)">STRIP</div>
             </div>
         </div>
 
